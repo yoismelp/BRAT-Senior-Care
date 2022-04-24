@@ -77,4 +77,28 @@ Sub Sheet2_Button1_Click()
     json = Replace(json, vbLf, "")
     Range("B96").Value = json
     Debug.Print json
+    
+    
+    'API Call
+    Dim req As New MSXML2.ServerXMLHTTP60
+    Dim env As String
+    Dim reqUrl As String
+    Dim allBody As String
+    Dim newBody As String
+    Dim RESPONSE As String
+    
+    reqUrl = Range("G8")
+    allBody = Range("B96")
+    
+    req.Open "POST", reqUrl, False
+    req.setRequestHeader "Content-Type", "application/json"
+    
+    'req.send allBody
+    
+    RESPONSE = req.responseText
+    
+        If req.Status <> 202 Then
+            MsgBox req.Status & " - " & req.statusText
+        Exit Sub
+        End If
 End Sub
