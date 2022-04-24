@@ -10,12 +10,22 @@ Sub Sheet2_Button1_Click()
     Dim VT As String
     VT = vbTab
     
+    Dim dt As Object, utc As Date
+    Set dt = CreateObject("WbemScripting.SWbemDateTime")
+    dt.SetVarDate Now
+    utc = dt.GetVarDate(False)
     
     Dim json As String
-    json = "{" & NL & _
-        VT & DQ & "updatedBy:" & DQ & "Yoismel Perez" & DQ & "," & NL & _
-        VT & DQ & "updatedAt:" & DQ & "Yoismel Perez" & DQ & "," & NL & _
-
+    json = "{" & _
+        DQ & "updatedBy" & DQ & ":" & DQ & "Yoismel Perez" & DQ & "," & _
+        DQ & "updatedAt" & DQ & ":" & DQ & utc & DQ & "," & _
+        DQ & "updatedComment" & DQ & ":" & DQ & "Comments here" & DQ & "," & _
+            DQ & "BRAT" & DQ & ":{" & _
+            DQ & "version" & DQ & ":" & DQ & "1.4" & DQ & "," & _
+            DQ & "name" & DQ & ":" & DQ & "SC" & DQ & "," & _
+            "}," & _
+            DQ & "data" & DQ & ":[{"
+            
     Dim propsDict1 As Dictionary
     Set propsDict1 = New Dictionary
     
@@ -48,8 +58,23 @@ Sub Sheet2_Button1_Click()
     End If
     
     Dim i As Integer
-    For i = 0 To propsDict1.Count - 1
-        Debug.Print i + 1 & " of " & propsDict1.Count & vbNewLine & _
-            DQ & propsDict1.Keys()(i) & DQ & ":" & DQ & propsDict1.Items()(i) & DQ & vbNewLine
-    Next i
+    
+    If propsDict1.Count > 0 Then
+        Dim data As String
+            For i = 0 To propsDict1.Count - 1
+                'Debug.Print i + 1 & " of " & propsDict1.Count & vbNewLine & _
+                DQ & propsDict1.Keys()(i) & DQ & ":" & DQ & propsDict1.Items()(i) & DQ & vbNewLine
+                data = data & DQ & propsDict1.Keys()(i) & DQ & ":" & DQ & propsDict1.Items()(i) & DQ & ","
+            Next i
+            data = Left(data, Len(data) - 1)
+            data = data & "}"
+    End If
+    'Add data for Option one to json
+    json = json & data
+    
+    'Close data and master json opening
+    json = json & "]}"
+    json = Replace(json, vbLf, "")
+    Range("B96").Value = json
+    Debug.Print json
 End Sub
