@@ -26,6 +26,7 @@ Sub Sheet2_Button1_Click()
             "}," & _
             DQ & "data" & DQ & ":[{"
             
+    'Need to add Microsoft Scripting Runtime Reference
     Dim propsDict1 As Dictionary
     'Set propsDict1 = New Dictionary
     
@@ -77,15 +78,12 @@ Sub Sheet2_Button1_Click()
     Debug.Print json
     
     'API Call
+    'Need to add Microsoft XML v6.0
     Dim req As New MSXML2.ServerXMLHTTP60
-    Dim env As String
     Dim reqUrl As String
-    Dim allBody As String
-    Dim newBody As String
     Dim RESPONSE As String
     
-    reqUrl = Range("G8")
-    allBody = Range("B96")
+    reqUrl = "https://prod-187.westus.logic.azure.com:443/workflows/d813eed078e049cd97a631b65a5cfd40/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=QaG0VscfMxZrEbLZrGgavOza18adQKjsNkAtljRkKGE"
     
     req.Open "POST", reqUrl, False
     req.setRequestHeader "Content-Type", "application/json"
