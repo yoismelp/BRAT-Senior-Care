@@ -3,6 +3,19 @@ Sub Sheet2_Button1_Click()
     'pulling values from. In our case, it will be the DataCard
     Worksheets("Sheet2").Activate
     
+    Dim DQ As String
+    DQ = """"
+    Dim NL As String
+    NL = vbNewLine
+    Dim VT As String
+    VT = vbTab
+    
+    
+    Dim json As String
+    json = "{" & NL & _
+        VT & DQ & "updatedBy:" & DQ & "Yoismel Perez" & DQ & "," & NL & _
+        VT & DQ & "updatedAt:" & DQ & "Yoismel Perez" & DQ & "," & NL & _
+
     Dim propsDict1 As Dictionary
     Set propsDict1 = New Dictionary
     
@@ -24,7 +37,7 @@ Sub Sheet2_Button1_Click()
     'Option 1, 2, 3
     If indicator <> "" Then
         For Each r In Range("B7", "B94")
-            If r.Value <> "" Or r.Value <> "Senior Care View" Then
+            If Not IsEmpty(r.Value) Or r.Value <> "Senior Care View" Then
                 propsDict1.Add r.Value, r.Offset(0, 1)
             End If
             iterator = iterator + 1
@@ -36,7 +49,7 @@ Sub Sheet2_Button1_Click()
     
     Dim i As Integer
     For i = 0 To propsDict1.Count - 1
-        Debug.Print "Dict Count:" & propsDict1.Count & vbNewLine & _
-            "Props-> Key:" & propsDict1.Keys()(i) & " Value:" & " " & propsDict1.Items()(i) & vbNewLine
+        Debug.Print i + 1 & " of " & propsDict1.Count & vbNewLine & _
+            DQ & propsDict1.Keys()(i) & DQ & ":" & DQ & propsDict1.Items()(i) & DQ & vbNewLine
     Next i
 End Sub
