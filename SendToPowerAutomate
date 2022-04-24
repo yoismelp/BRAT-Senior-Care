@@ -27,48 +27,46 @@ Sub Sheet2_Button1_Click()
             DQ & "data" & DQ & ":[{"
             
     Dim propsDict1 As Dictionary
-    Set propsDict1 = New Dictionary
+    'Set propsDict1 = New Dictionary
     
     Dim propsDict2 As Dictionary
-    Set propsDict2 = New Dictionary
+    'Set propsDict2 = New Dictionary
     
     Dim propsDict3 As Dictionary
-    Set propsDict3 = New Dictionary
+    'Set propsDict3 = New Dictionary
     
     Dim r As Range
     Dim iterator As Integer
     iterator = 0
     Dim indicator As String
-    indicator = Range("B7").Value
+    indicator = Range("C7").Value
     
-    'Can add while indicator and reset indicator after
-    'foreach loop setting the dictionaries
-    'but need to make sure we are also setting a new dict to separate
-    'Option 1, 2, 3
-    If indicator <> "" Then
-        For Each r In Range("B7", "B94")
-            If Not IsEmpty(r.Value) Or r.Value <> "Senior Care View" Then
-                propsDict1.Add r.Value, r.Offset(0, 1)
-            End If
-            iterator = iterator + 1
-            If iterator >= 88 Then
-                Exit For
-            End If
-        Next r
-    End If
+    'START setting dictionaries to use for constructing the JSON data prop
+    Set propsDict1 = GetOption(CStr(indicator), "B7:B94")
+    indicator = Range("F7").Value
+    Set propsDict2 = GetOption(CStr(indicator), "E7:E94")
+    indicator = Range("I7").Value
+    Set propsDict3 = GetOption(CStr(indicator), "H7:H94")
+    'END setting dictionaries to use for constructing the JSON data prop
     
-    Dim i As Integer
+    'START creating data part of JSON payload
+    Dim data As String
+    data = ""
     
+    'Option 1 Loop
     If propsDict1.Count > 0 Then
-        Dim data As String
-            For i = 0 To propsDict1.Count - 1
-                'Debug.Print i + 1 & " of " & propsDict1.Count & vbNewLine & _
-                DQ & propsDict1.Keys()(i) & DQ & ":" & DQ & propsDict1.Items()(i) & DQ & vbNewLine
-                data = data & DQ & propsDict1.Keys()(i) & DQ & ":" & DQ & propsDict1.Items()(i) & DQ & ","
-            Next i
-            data = Left(data, Len(data) - 1)
-            data = data & "}"
+        data = data & GetData(propsDict1)
     End If
+    'Option 2 Loop
+    If propsDict2.Count > 0 Then
+        data = data & ",{" & GetData(propsDict2)
+    End If
+    'Option 3 Loop
+    If propsDict3.Count > 0 Then
+        data = data & ",{" & GetData(propsDict3)
+    End If
+    'END creating data part of JSON payload
+    
     'Add data for Option one to json
     json = json & data
     
@@ -77,7 +75,6 @@ Sub Sheet2_Button1_Click()
     json = Replace(json, vbLf, "")
     Range("B96").Value = json
     Debug.Print json
-    
     
     'API Call
     Dim req As New MSXML2.ServerXMLHTTP60
@@ -93,7 +90,7 @@ Sub Sheet2_Button1_Click()
     req.Open "POST", reqUrl, False
     req.setRequestHeader "Content-Type", "application/json"
     
-    'req.send allBody
+    req.send json
     
     RESPONSE = req.responseText
     
@@ -102,3 +99,54 @@ Sub Sheet2_Button1_Click()
         Exit Sub
         End If
 End Sub
+
+Function GetData(props As Dictionary) As String
+    Dim data As String
+    Dim DQ As String
+    DQ = """"
+    For i = 0 To props.Count - 1
+        data = data & DQ & props.Keys()(i) & DQ & ":" & DQ & props.Items()(i) & DQ & ","
+    Next i
+    data = Left(data, Len(data) - 1)
+    data = data & "}"
+    GetData = data
+End Function
+
+Function GetOption(indicator As String, myRange As String) As Dictionary
+    Dim propsDict As Dictionary
+    Set propsDict = New Dictionary
+    Dim iterator As Integer
+    iterator = 0
+    
+    If indicator <> 0 Then
+        For Each r In Range(myRange)
+            If Not IsEmpty(r.Value) Or r.Value <> "Senior Care View" Then
+                propsDict.Add r.Value, r.Offset(0, 1)
+            End If
+            iterator = iterator + 1
+            If iterator >= 88 Then
+                Exit For
+            End If
+        Next r
+    End If
+    
+    Set GetOption = propsDict
+End Function
+
+Function CallApiFlow(data As String) As Integer
+    Dim req As New MSXML2.ServerXMLHTTP60
+    Dim env As String
+    Dim reqUrl As String
+    Dim allBody As String
+    Dim newBody As String
+    Dim RESPONSE As String
+    
+    reqUrl = Range("G8")
+    
+    req.Open "POST", reqUrl, False
+    req.setRequestHeader "Content-Type", "application/json"
+    
+    req.send data
+    
+    CallApiFlow = req.Status
+End Function
