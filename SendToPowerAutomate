@@ -1,0 +1,42 @@
+Sub Sheet2_Button1_Click()
+    'Need to add this line and select worksheet we are going to be
+    'pulling values from. In our case, it will be the DataCard
+    Worksheets("Sheet2").Activate
+    
+    Dim propsDict1 As Dictionary
+    Set propsDict1 = New Dictionary
+    
+    Dim propsDict2 As Dictionary
+    Set propsDict2 = New Dictionary
+    
+    Dim propsDict3 As Dictionary
+    Set propsDict3 = New Dictionary
+    
+    Dim r As Range
+    Dim iterator As Integer
+    iterator = 0
+    Dim indicator As String
+    indicator = Range("B7").Value
+    
+    'Can add while indicator and reset indicator after
+    'foreach loop setting the dictionaries
+    'but need to make sure we are also setting a new dict to separate
+    'Option 1, 2, 3
+    If indicator <> "" Then
+        For Each r In Range("B7", "B94")
+            If r.Value <> "" Or r.Value <> "Senior Care View" Then
+                propsDict1.Add r.Value, r.Offset(0, 1)
+            End If
+            iterator = iterator + 1
+            If iterator >= 88 Then
+                Exit For
+            End If
+        Next r
+    End If
+    
+    Dim i As Integer
+    For i = 0 To propsDict1.Count - 1
+        Debug.Print "Dict Count:" & propsDict1.Count & vbNewLine & _
+            "Props-> Key:" & propsDict1.Keys()(i) & " Value:" & " " & propsDict1.Items()(i) & vbNewLine
+    Next i
+End Sub
