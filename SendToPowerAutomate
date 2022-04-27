@@ -1,7 +1,7 @@
-Sub Sheet2_Button1_Click()
-    'Need to add this line and select worksheet we are going to be
+Sub Sheet3_Button1_Click()
+'Need to add this line and select worksheet we are going to be
     'pulling values from. In our case, it will be the DataCard
-    Worksheets("Sheet2").Activate
+    Worksheets("Sheet3").Activate
     
     Dim DQ As String
     DQ = """"
@@ -40,13 +40,13 @@ Sub Sheet2_Button1_Click()
     Dim iterator As Integer
     iterator = 0
     Dim indicator As String
-    indicator = Range("C7").Value
+    indicator = Range("C8").Value
     
     'START setting dictionaries to use for constructing the JSON data prop
     Set propsDict1 = GetOption(CStr(indicator), "B7:B94")
-    indicator = Range("F7").Value
+    indicator = Range("F8").Value
     Set propsDict2 = GetOption(CStr(indicator), "E7:E94")
-    indicator = Range("I7").Value
+    indicator = Range("I8").Value
     Set propsDict3 = GetOption(CStr(indicator), "H7:H94")
     'END setting dictionaries to use for constructing the JSON data prop
     
@@ -56,19 +56,21 @@ Sub Sheet2_Button1_Click()
     
     'Option 1 Loop
     If propsDict1.Count > 0 Then
-        data = data & GetData(propsDict1)
+        data = data & GetData(propsDict1) & ",{"
     End If
     'Option 2 Loop
     If propsDict2.Count > 0 Then
-        data = data & ",{" & GetData(propsDict2)
+        data = data & GetData(propsDict2) & ",{"
     End If
     'Option 3 Loop
     If propsDict3.Count > 0 Then
-        data = data & ",{" & GetData(propsDict3)
+        data = data & GetData(propsDict3) & ",{"
     End If
     'END creating data part of JSON payload
     
-    'Add data for Option one to json
+    'Remove last ,{ from data then
+    'Add data for Option 1,2, and 3 to json
+    data = Left(data, Len(data) - 2)
     json = json & data
     
     'Close data and master json opening
@@ -116,7 +118,7 @@ Function GetOption(indicator As String, myRange As String) As Dictionary
     Dim iterator As Integer
     iterator = 0
     
-    If indicator <> 0 Then
+    If indicator <> "Insured" Then
         For Each r In Range(myRange)
             If Not IsEmpty(r.Value) Or r.Value <> "Senior Care View" Then
                 propsDict.Add r.Value, r.Offset(0, 1)
