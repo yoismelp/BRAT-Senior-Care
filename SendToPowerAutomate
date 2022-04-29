@@ -1,7 +1,10 @@
-Sub Sheet3_Button1_Click()
+Sub Button1_Click()
 'Need to add this line and select worksheet we are going to be
     'pulling values from. In our case, it will be the DataCard
-    Worksheets("Sheet3").Activate
+    Worksheets("Cards Data Validation").Activate
+    
+    Dim reqUrl As String
+    reqUrl = "https://prod-104.westus.logic.azure.com:443/workflows/ed9c6ddbe2b64ce1baebc380e51f16dd/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=dRECGk3KXiN-sUcxiXY96vg5GUciRzEs8DbwDjG_p7g"
     
     Dim DQ As String
     DQ = """"
@@ -40,13 +43,17 @@ Sub Sheet3_Button1_Click()
     Dim iterator As Integer
     iterator = 0
     Dim indicator As String
-    indicator = Range("C8").Value
+
+    indicator = Worksheets("Risk Analysis").Range("L1258").Value
+    Debug.Print indicator
     
     'START setting dictionaries to use for constructing the JSON data prop
     Set propsDict1 = GetOption(CStr(indicator), "B7:B94")
-    indicator = Range("F8").Value
+    indicator = Worksheets("Risk Analysis").Range("AB1258").Value
+    Debug.Print indicator
     Set propsDict2 = GetOption(CStr(indicator), "E7:E94")
-    indicator = Range("I8").Value
+    indicator = Worksheets("Risk Analysis").Range("AR1258").Value
+    Debug.Print indicator
     Set propsDict3 = GetOption(CStr(indicator), "H7:H94")
     'END setting dictionaries to use for constructing the JSON data prop
     
@@ -76,16 +83,14 @@ Sub Sheet3_Button1_Click()
     'Close data and master json opening
     json = json & "]}"
     json = Replace(json, vbLf, "")
-    Range("B96").Value = json
+    'Range("B96").Value = json
     Debug.Print json
     
     'API Call
     'Need to add Microsoft XML v6.0
     Dim req As New MSXML2.ServerXMLHTTP60
-    Dim reqUrl As String
-    Dim RESPONSE As String
     
-    reqUrl = "https://prod-187.westus.logic.azure.com:443/workflows/d813eed078e049cd97a631b65a5cfd40/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=QaG0VscfMxZrEbLZrGgavOza18adQKjsNkAtljRkKGE"
+    Dim RESPONSE As String
     
     req.Open "POST", reqUrl, False
     req.setRequestHeader "Content-Type", "application/json"
@@ -118,7 +123,7 @@ Function GetOption(indicator As String, myRange As String) As Dictionary
     Dim iterator As Integer
     iterator = 0
     
-    If indicator <> "Insured" Then
+    If indicator = "Bound" Then
         For Each r In Range(myRange)
             If Not IsEmpty(r.Value) Or r.Value <> "Senior Care View" Then
                 propsDict.Add r.Value, r.Offset(0, 1)
