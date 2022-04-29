@@ -13,6 +13,12 @@ Sub Button1_Click()
     Dim VT As String
     VT = vbTab
     
+    Dim CURRENT_USER As String
+    CURRENT_USER = Application.UserName
+    
+    Dim VERSION As String
+    VERSION = Worksheets("Risk Analysis").Range("E7").Value
+    
     Dim dt As Object, utc As Date
     Set dt = CreateObject("WbemScripting.SWbemDateTime")
     dt.SetVarDate Now
@@ -20,11 +26,11 @@ Sub Button1_Click()
     
     Dim json As String
     json = "{" & _
-        DQ & "updatedBy" & DQ & ":" & DQ & "Yoismel Perez" & DQ & "," & _
+        DQ & "updatedBy" & DQ & ":" & DQ & CURRENT_USER & DQ & "," & _
         DQ & "updatedAt" & DQ & ":" & DQ & utc & DQ & "," & _
         DQ & "updatedComment" & DQ & ":" & DQ & "Comments here" & DQ & "," & _
             DQ & "BRAT" & DQ & ":{" & _
-            DQ & "version" & DQ & ":" & DQ & "1.4" & DQ & "," & _
+            DQ & "version" & DQ & ":" & DQ & VERSION & DQ & "," & _
             DQ & "name" & DQ & ":" & DQ & "SC" & DQ & "," & _
             "}," & _
             DQ & "data" & DQ & ":[{"
@@ -77,32 +83,34 @@ Sub Button1_Click()
     
     'Remove last ,{ from data then
     'Add data for Option 1,2, and 3 to json
-    data = Left(data, Len(data) - 2)
-    json = json & data
+    If data <> "" Then
+        data = Left(data, Len(data) - 2)
+        json = json & data
     
-    'Close data and master json opening
-    json = json & "]}"
-    json = Replace(json, vbLf, "")
-    'Range("B96").Value = json
-    Debug.Print json
+        'Close data and master json opening
+        json = json & "]}"
+        json = Replace(json, vbLf, "")
+        'Range("B96").Value = json
+        'Debug.Print json
     
-    'API Call
-    'Need to add Microsoft XML v6.0
-    Dim req As New MSXML2.ServerXMLHTTP60
+        'API Call
+        'Need to add Microsoft XML v6.0
+        Dim req As New MSXML2.ServerXMLHTTP60
     
-    Dim RESPONSE As String
+        Dim RESPONSE As String
     
-    req.Open "POST", reqUrl, False
-    req.setRequestHeader "Content-Type", "application/json"
+        req.Open "POST", reqUrl, False
+        req.setRequestHeader "Content-Type", "application/json"
     
-    req.send json
+        req.send json
     
-    RESPONSE = req.responseText
+        RESPONSE = req.responseText
     
-        If req.Status <> 202 Then
-            MsgBox req.Status & " - " & req.statusText
-        Exit Sub
-        End If
+            If req.Status <> 202 Then
+                MsgBox req.Status & " - " & req.statusText
+            Exit Sub
+            End If
+    End If
 End Sub
 
 Function GetData(props As Dictionary) As String
