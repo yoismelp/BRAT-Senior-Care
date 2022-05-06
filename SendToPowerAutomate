@@ -6,6 +6,13 @@ Sub Button1_Click()
     Dim reqUrl As String
     reqUrl = "https://prod-104.westus.logic.azure.com:443/workflows/ed9c6ddbe2b64ce1baebc380e51f16dd/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=dRECGk3KXiN-sUcxiXY96vg5GUciRzEs8DbwDjG_p7g"
     
+    Dim indicatorOption_1 As String
+    indicatorOption_1 = Worksheets("Risk Analysis").Range("L1256").Value
+    Dim indicatorOption_2 As String
+    indicatorOption_2 = Worksheets("Risk Analysis").Range("AB1256").Value
+    Dim indicatorOption_3 As String
+    indicatorOption_3 = Worksheets("Risk Analysis").Range("AR1256").Value
+    
     Dim DQ As String
     DQ = """"
     Dim NL As String
@@ -31,36 +38,30 @@ Sub Button1_Click()
         DQ & "updatedComment" & DQ & ":" & DQ & "Comments here" & DQ & "," & _
             DQ & "BRAT" & DQ & ":{" & _
             DQ & "version" & DQ & ":" & DQ & VERSION & DQ & "," & _
-            DQ & "name" & DQ & ":" & DQ & "SC" & DQ & "," & _
+            DQ & "name" & DQ & ":" & DQ & "SC" & DQ & _
             "}," & _
             DQ & "data" & DQ & ":[{"
             
     'Need to add Microsoft Scripting Runtime Reference
-    Dim propsDict1 As Dictionary
+    Dim propsDict1 As Scripting.Dictionary
     'Set propsDict1 = New Dictionary
     
-    Dim propsDict2 As Dictionary
+    Dim propsDict2 As Scripting.Dictionary
     'Set propsDict2 = New Dictionary
     
-    Dim propsDict3 As Dictionary
+    Dim propsDict3 As Scripting.Dictionary
     'Set propsDict3 = New Dictionary
     
     Dim r As Range
     Dim iterator As Integer
     iterator = 0
-    Dim indicator As String
-
-    indicator = Worksheets("Risk Analysis").Range("L1258").Value
-    Debug.Print indicator
     
     'START setting dictionaries to use for constructing the JSON data prop
-    Set propsDict1 = GetOption(CStr(indicator), "B7:B94")
-    indicator = Worksheets("Risk Analysis").Range("AB1258").Value
+    Set propsDict1 = GetOption(CStr(indicatorOption_1), "B7:B96")
     Debug.Print indicator
-    Set propsDict2 = GetOption(CStr(indicator), "E7:E94")
-    indicator = Worksheets("Risk Analysis").Range("AR1258").Value
+    Set propsDict2 = GetOption(CStr(indicatorOption_2), "E7:E96")
     Debug.Print indicator
-    Set propsDict3 = GetOption(CStr(indicator), "H7:H94")
+    Set propsDict3 = GetOption(CStr(indicatorOption_3), "H7:H96")
     'END setting dictionaries to use for constructing the JSON data prop
     
     'START creating data part of JSON payload
@@ -90,7 +91,7 @@ Sub Button1_Click()
         'Close data and master json opening
         json = json & "]}"
         json = Replace(json, vbLf, "")
-        'Range("B96").Value = json
+        Range("B100").Value = json
         'Debug.Print json
     
         'API Call
@@ -107,13 +108,13 @@ Sub Button1_Click()
         RESPONSE = req.responseText
     
             If req.Status <> 202 Then
-                MsgBox req.Status & " - " & req.statusText
+                MsgBox req.Status & " - " & req.StatusText
             Exit Sub
             End If
     End If
 End Sub
 
-Function GetData(props As Dictionary) As String
+Function GetData(props As Scripting.Dictionary) As String
     Dim data As String
     Dim DQ As String
     DQ = """"
@@ -125,9 +126,9 @@ Function GetData(props As Dictionary) As String
     GetData = data
 End Function
 
-Function GetOption(indicator As String, myRange As String) As Dictionary
-    Dim propsDict As Dictionary
-    Set propsDict = New Dictionary
+Function GetOption(indicator As String, myRange As String) As Scripting.Dictionary
+    Dim propsDict As Scripting.Dictionary
+    Set propsDict = New Scripting.Dictionary
     Dim iterator As Integer
     iterator = 0
     
@@ -142,24 +143,5 @@ Function GetOption(indicator As String, myRange As String) As Dictionary
             End If
         Next r
     End If
-    
     Set GetOption = propsDict
-End Function
-
-Function CallApiFlow(data As String) As Integer
-    Dim req As New MSXML2.ServerXMLHTTP60
-    Dim env As String
-    Dim reqUrl As String
-    Dim allBody As String
-    Dim newBody As String
-    Dim RESPONSE As String
-    
-    reqUrl = Range("G8")
-    
-    req.Open "POST", reqUrl, False
-    req.setRequestHeader "Content-Type", "application/json"
-    
-    req.send data
-    
-    CallApiFlow = req.Status
 End Function
