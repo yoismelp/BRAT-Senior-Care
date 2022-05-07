@@ -113,10 +113,17 @@ Sub Button1_Click()
         
                 If req.Status <> 202 Then
                     MsgBox req.Status & " - " & req.StatusText
-                Exit Sub
+                    Worksheets("ExportData").Range("P29").Value = req.Status & " - " & req.StatusText
+                    Worksheets("ExportData").Activate
+                    Exit Sub
+                Else
+                    Worksheets("ExportData").Range("P29").Value = "Sent"
                 End If
         End If
         Worksheets("ExportData").Activate
+    Else
+        MsgBox ("Data did not send as Overall Status is not OK")
+        Worksheets("ExportData").Range("P29").Value = "Data did not send. Overall Status is not OK"
     End If
 End Sub
 
@@ -152,4 +159,3 @@ Function GetOption(indicator As String, myRange As String) As Scripting.Dictiona
     
     Set GetOption = propsDict
 End Function
-
