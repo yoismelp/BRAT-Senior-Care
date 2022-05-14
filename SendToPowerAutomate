@@ -129,14 +129,46 @@ End Sub
 
 Function GetData(props As Scripting.Dictionary) As String
     Dim data As String
+    Dim dataType As String
     Dim DQ As String
     DQ = """"
     For i = 0 To props.Count - 1
-        data = data & DQ & props.Keys()(i) & DQ & ":" & DQ & props.Items()(i) & DQ & ","
+        dataType = CheckDataType(CStr(props.Keys()(i)))
+        If dataType = "" Then
+            'Debug.Print props.Keys()(i) & " No Included in JSon"
+        ElseIf dataType = "number" Or dataType = "currency" Then
+            'Debug.Print DQ & props.Keys()(i) & DQ & ":" & props.Items()(i)
+            If props.Items()(i) = "" Then
+                data = data & DQ & props.Keys()(i) & DQ & ":null,"
+            ElseIf props.Items()(i) <> "" And IsNumeric(props.Items()(i)) Then
+                data = data & DQ & props.Keys()(i) & DQ & ":" & props.Items()(i) & ","
+            Else
+                MsgBox (props.Keys()(i) & " is expecting a " & dataType & " value but has this value instead: " & props.Items()(i))
+            End If
+        ElseIf dataType = "datetime" Then
+            If props.Items()(i) = "" Then
+                data = data & DQ & props.Keys()(i) & DQ & ":null,"
+            ElseIf props.Items()(i) <> "" And IsDate(props.Items()(i)) Then
+                data = data & DQ & props.Keys()(i) & DQ & ":" & DQ & CDate(props.Items()(i)) & DQ & ","
+            Else
+                MsgBox (props.Keys()(i) & " is expecting a " & dataType & " value but has this value instead: " & props.Items()(i))
+            End If
+        Else 'other types not number, currency,datetime
+            data = data & DQ & props.Keys()(i) & DQ & ":" & DQ & props.Items()(i) & DQ & ","
+            'Debug.Print props.Keys()(i) & " "; dataType
+        End If
     Next i
     data = Left(data, Len(data) - 1)
     data = data & "}"
     GetData = data
+End Function
+
+Function CheckDataType(fieldName As String) As String
+    Dim dataType As String
+    Set myRange = Worksheets("HC Data").Range("A2:B89")
+    On Error GoTo Message
+        CheckDataType = Application.WorksheetFunction.VLookup(fieldName, myRange, 2, False)
+Message:
 End Function
 
 Function GetOption(indicator As String, myRange As String) As Scripting.Dictionary
