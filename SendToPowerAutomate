@@ -3,6 +3,8 @@ Sub Button1_Click()
     'pulling values from. In our case, it will be the DataCard
     Dim OVERALL_STATUS As String
     OVERALL_STATUS = Worksheets("ExportData").Range("P27").Value
+    Dim LAST_ROW_TO_READ As String
+    LAST_ROW_TO_READ = Worksheets("SC JSON Helper").Range("E1").Value
     
     If OVERALL_STATUS = "OK" Then
         Worksheets("Cards Data Validation").Activate
@@ -61,11 +63,11 @@ Sub Button1_Click()
         iterator = 0
         
         'START setting dictionaries to use for constructing the JSON data prop
-        Set propsDict1 = GetOption(CStr(indicatorOption_1), "B7:B96")
+        Set propsDict1 = GetOption(CStr(indicatorOption_1), "B7:B" & LAST_ROW_TO_READ)
         Debug.Print indicator
-        Set propsDict2 = GetOption(CStr(indicatorOption_2), "E7:E96")
+        Set propsDict2 = GetOption(CStr(indicatorOption_2), "E7:E" & LAST_ROW_TO_READ)
         Debug.Print indicator
-        Set propsDict3 = GetOption(CStr(indicatorOption_3), "H7:H96")
+        Set propsDict3 = GetOption(CStr(indicatorOption_3), "H7:H" & LAST_ROW_TO_READ)
         'END setting dictionaries to use for constructing the JSON data prop
         
         'START creating data part of JSON payload
@@ -165,7 +167,7 @@ End Function
 
 Function CheckDataType(fieldName As String) As String
     Dim dataType As String
-    Set myRange = Worksheets("HC Data").Range("A2:B89")
+    Set myRange = Worksheets("SC JSON Helper").Range("A2:B89")
     On Error GoTo Message
         CheckDataType = Application.WorksheetFunction.VLookup(fieldName, myRange, 2, False)
 Message:
