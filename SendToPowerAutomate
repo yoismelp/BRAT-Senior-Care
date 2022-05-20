@@ -41,7 +41,7 @@ Sub Button1_Click()
         json = "{" & _
             DQ & "updatedBy" & DQ & ":" & DQ & CURRENT_USER & DQ & "," & _
             DQ & "updatedAt" & DQ & ":" & DQ & utc & DQ & "," & _
-            DQ & "updatedComment" & DQ & ":" & DQ & "Comments here" & DQ & "," & _
+            DQ & "updatedComment" & DQ & ":" & DQ & DQ & "," & _
                 DQ & "BRAT" & DQ & ":{" & _
                 DQ & "version" & DQ & ":" & DQ & VERSION & DQ & "," & _
                 DQ & "name" & DQ & ":" & DQ & "SC" & DQ & _
@@ -63,11 +63,11 @@ Sub Button1_Click()
         iterator = 0
         
         'START setting dictionaries to use for constructing the JSON data prop
-        Set propsDict1 = GetOption(CStr(indicatorOption_1), "B7:B" & LAST_ROW_TO_READ)
-        Debug.Print indicator
-        Set propsDict2 = GetOption(CStr(indicatorOption_2), "E7:E" & LAST_ROW_TO_READ)
-        Debug.Print indicator
-        Set propsDict3 = GetOption(CStr(indicatorOption_3), "H7:H" & LAST_ROW_TO_READ)
+        Set propsDict1 = GetOption(CStr(indicatorOption_1), "B7:B", CInt(LAST_ROW_TO_READ))
+        ''Debug.Print indicator
+        Set propsDict2 = GetOption(CStr(indicatorOption_2), "E7:E", CInt(LAST_ROW_TO_READ))
+        ''Debug.Print indicator
+        Set propsDict3 = GetOption(CStr(indicatorOption_3), "H7:H", CInt(LAST_ROW_TO_READ))
         'END setting dictionaries to use for constructing the JSON data prop
         
         'START creating data part of JSON payload
@@ -76,15 +76,15 @@ Sub Button1_Click()
         
         'Option 1 Loop
         If propsDict1.Count > 0 Then
-            data = data & GetData(propsDict1) & ",{"
+            data = data & GetData(propsDict1, LAST_ROW_TO_READ) & ",{"
         End If
         'Option 2 Loop
         If propsDict2.Count > 0 Then
-            data = data & GetData(propsDict2) & ",{"
+            data = data & GetData(propsDict2, LAST_ROW_TO_READ) & ",{"
         End If
         'Option 3 Loop
         If propsDict3.Count > 0 Then
-            data = data & GetData(propsDict3) & ",{"
+            data = data & GetData(propsDict3, LAST_ROW_TO_READ) & ",{"
         End If
         'END creating data part of JSON payload
         
@@ -97,8 +97,10 @@ Sub Button1_Click()
             'Close data and master json opening
             json = json & "]}"
             json = Replace(json, vbLf, "")
-            Range("B100").Value = json
-            'Debug.Print json
+            
+            'This will make the generated JSON visible if need to troubleshoot
+            Range("B" & CStr(CInt(LAST_ROW_TO_READ) + 2)).Value = json
+            ''Debug.Print json
         
             'API Call
             'Need to add Microsoft XML v6.0
@@ -115,31 +117,36 @@ Sub Button1_Click()
         
                 If req.Status <> 202 Then
                     MsgBox req.Status & " - " & req.StatusText
-                    Worksheets("ExportData").Range("P29").Value = req.Status & " - " & req.StatusText
+                    'Worksheets("ExportData").Range("P29").Value = req.Status & " - " & req.StatusText
+                    Worksheets("ExportData").Range("P29").Value = "Failed. Not deployed to production yet."
                     Worksheets("ExportData").Activate
-                    Exit Sub
+                    'Exit Function
                 Else
-                    Worksheets("ExportData").Range("P29").Value = "Sent"
+                    '****************Uncomment when deploy to prod*************************
+                    'Worksheets("ExportData").Range("P29").Value = "Sent"
+                    Worksheets("ExportData").Range("P29").Value = "Failed. Not deployed to production yet."
                 End If
         End If
         Worksheets("ExportData").Activate
     Else
-        MsgBox ("Data did not send as Overall Status is not OK")
-        Worksheets("ExportData").Range("P29").Value = "Data did not send. Overall Status is not OK"
+                    '*************Uncomment when deploy to prod****************************
+        'MsgBox ("Data did not send as Overall Status is not OK")
+        'Worksheets("ExportData").Range("P29").Value = "Data did not send. Overall Status is not OK"
+        Worksheets("ExportData").Range("P29").Value = "Failed. Not deployed to production yet."
     End If
 End Sub
 
-Function GetData(props As Scripting.Dictionary) As String
+Function GetData(props As Scripting.Dictionary, lastRowNumber) As String
     Dim data As String
     Dim dataType As String
     Dim DQ As String
     DQ = """"
     For i = 0 To props.Count - 1
-        dataType = CheckDataType(CStr(props.Keys()(i)))
+        dataType = CheckDataType(CStr(props.Keys()(i)), CStr(lastRowNumber))
         If dataType = "" Then
-            'Debug.Print props.Keys()(i) & " No Included in JSon"
+            ''Debug.Print props.Keys()(i) & " No Included in JSon"
         ElseIf dataType = "number" Or dataType = "currency" Then
-            'Debug.Print DQ & props.Keys()(i) & DQ & ":" & props.Items()(i)
+            ''Debug.Print DQ & props.Keys()(i) & DQ & ":" & props.Items()(i)
             If props.Items()(i) = "" Then
                 data = data & DQ & props.Keys()(i) & DQ & ":null,"
             ElseIf props.Items()(i) <> "" And IsNumeric(props.Items()(i)) Then
@@ -156,8 +163,12 @@ Function GetData(props As Scripting.Dictionary) As String
                 MsgBox (props.Keys()(i) & " is expecting a " & dataType & " value but has this value instead: " & props.Items()(i))
             End If
         Else 'other types not number, currency,datetime
-            data = data & DQ & props.Keys()(i) & DQ & ":" & DQ & props.Items()(i) & DQ & ","
-            'Debug.Print props.Keys()(i) & " "; dataType
+            If props.Items()(i) = "" Then
+                data = data & DQ & props.Keys()(i) & DQ & ":null,"
+            Else
+                data = data & DQ & props.Keys()(i) & DQ & ":" & DQ & props.Items()(i) & DQ & ","
+            End If
+            ''Debug.Print props.Keys()(i) & " "; dataType
         End If
     Next i
     data = Left(data, Len(data) - 1)
@@ -165,29 +176,34 @@ Function GetData(props As Scripting.Dictionary) As String
     GetData = data
 End Function
 
-Function CheckDataType(fieldName As String) As String
+Function CheckDataType(fieldName As String, lastRowNumber As String) As String
     Dim dataType As String
-    Set myRange = Worksheets("SC JSON Helper").Range("A2:B89")
+    Set myRange = Worksheets("SC JSON Helper").Range("A2:B" & lastRowNumber)
     On Error GoTo Message
         CheckDataType = Application.WorksheetFunction.VLookup(fieldName, myRange, 2, False)
 Message:
 End Function
 
-Function GetOption(indicator As String, myRange As String) As Scripting.Dictionary
+Function GetOption(indicator As String, myRange As String, lastRow As Integer) As Scripting.Dictionary
     Dim propsDict As Scripting.Dictionary
     Set propsDict = New Scripting.Dictionary
     Dim iterator As Integer
     iterator = 0
     
     If indicator = "Bound" Then
-        For Each r In Range(myRange)
-            If Not IsEmpty(r.Value) Or r.Value <> "Senior Care View" Then
+    
+        For Each r In Range(myRange & CStr(lastRow)) 'setting dynamic range based on input number value in JSON Helper Tab
+            If Not IsEmpty(r.Value) And r.Value <> "Senior Care View" And r.Value <> "" Then
                 propsDict.Add r.Value, r.Offset(0, 1)
+                'Debug.Print r.Value & " " & r.Offset(0, 1)
             End If
             iterator = iterator + 1
-            If iterator >= 88 Then
+            If iterator >= lastRow Then
                 Exit For
             End If
+            'If r.Value = "END" Then
+                'Exit For
+            'End If
         Next r
     End If
     
