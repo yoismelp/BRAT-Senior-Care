@@ -75,18 +75,34 @@ Sub Button1_Click()
         data = ""
         
         'Option 1 Loop
+        Dim option1Status As String
+        option1Status = ""
         If propsDict1.Count > 0 Then
-            data = data & GetData(propsDict1, LAST_ROW_TO_READ) & ",{"
+            data = data & GetData(propsDict1, LAST_ROW_TO_READ, option1Status) & ",{"
         End If
         'Option 2 Loop
+        Dim option2Status As String
+        option2Status = ""
         If propsDict2.Count > 0 Then
-            data = data & GetData(propsDict2, LAST_ROW_TO_READ) & ",{"
+            data = data & GetData(propsDict2, LAST_ROW_TO_READ, option2Status) & ",{"
         End If
         'Option 3 Loop
+        Dim option3Status As String
+        option3Status = ""
         If propsDict3.Count > 0 Then
-            data = data & GetData(propsDict3, LAST_ROW_TO_READ) & ",{"
+            data = data & GetData(propsDict3, LAST_ROW_TO_READ, option3Status) & ",{"
         End If
         'END creating data part of JSON payload
+        
+        If option1Status <> "" Or option2Status <> "" Or option3Status <> "" Then
+            'Set the Status for Option 1, 2, and 3 in Export Data and Overall Status to Invalid payload, see details below
+            Worksheets("ExportData").Range("P29").Value = "Test. This part is still in development."
+            Worksheets("ExportData").Range("P30").Value = option1Status
+            Worksheets("ExportData").Range("P31").Value = option2Status
+            Worksheets("ExportData").Range("P32").Value = option3Status
+            Worksheets("ExportData").Activate
+            Exit Sub
+        End If
         
         'Remove last ,{ from data then
         'Add data for Option 1,2, and 3 to json
@@ -114,18 +130,29 @@ Sub Button1_Click()
             req.send json
         
             RESPONSE = req.responseText
-        
-                If req.Status <> 202 Then
-                    MsgBox req.Status & " - " & req.StatusText
+            Dim JsonResponse As Object
+            Set JsonResponse = JsonConverter.ParseJson(RESPONSE)
+            
+            On Error GoTo APIResponse
+                option1Status = option1Status & JsonResponse(1)("Status Value") 'append to option 1 status
+                option2Status = option2Status & JsonResponse(2)("Status Value") 'append to option 2 status
+                option3Status = option3Status & JsonResponse(3)("Status Value") 'append to option 3 status
+APIResponse:
+                If req.Status <> 200 Then
+                    'MsgBox req.Status & " - " & req.StatusText
                     'Worksheets("ExportData").Range("P29").Value = req.Status & " - " & req.StatusText
-                    Worksheets("ExportData").Range("P29").Value = "Failed. Not deployed to production yet."
+                    Worksheets("ExportData").Range("P29").Value = "Test. This part is still in development."
                     Worksheets("ExportData").Activate
                     'Exit Function
                 Else
                     '****************Uncomment when deploy to prod*************************
                     'Worksheets("ExportData").Range("P29").Value = "Sent"
-                    Worksheets("ExportData").Range("P29").Value = "Failed. Not deployed to production yet."
+                    Worksheets("ExportData").Range("P29").Value = "Test. This part is still in development."
                 End If
+                
+                Worksheets("ExportData").Range("P30").Value = option1Status
+                Worksheets("ExportData").Range("P31").Value = option2Status
+                Worksheets("ExportData").Range("P32").Value = option3Status
         End If
         Worksheets("ExportData").Activate
     Else
@@ -136,7 +163,7 @@ Sub Button1_Click()
     End If
 End Sub
 
-Function GetData(props As Scripting.Dictionary, lastRowNumber) As String
+Function GetData(ByVal props As Scripting.Dictionary, ByVal lastRowNumber As Integer, ByRef optionStatus As String) As String
     Dim data As String
     Dim dataType As String
     Dim DQ As String
@@ -144,15 +171,16 @@ Function GetData(props As Scripting.Dictionary, lastRowNumber) As String
     For i = 0 To props.Count - 1
         dataType = CheckDataType(CStr(props.Keys()(i)), CStr(lastRowNumber))
         If dataType = "" Then
-            ''Debug.Print props.Keys()(i) & " No Included in JSon"
+            Debug.Print props.Keys()(i) & " No Included in JSon"
         ElseIf dataType = "number" Or dataType = "currency" Then
-            ''Debug.Print DQ & props.Keys()(i) & DQ & ":" & props.Items()(i)
+            Debug.Print DQ & props.Keys()(i) & DQ & ":" & props.Items()(i)
             If props.Items()(i) = "" Then
                 data = data & DQ & props.Keys()(i) & DQ & ":null,"
             ElseIf props.Items()(i) <> "" And IsNumeric(props.Items()(i)) Then
                 data = data & DQ & props.Keys()(i) & DQ & ":" & props.Items()(i) & ","
             Else
-                MsgBox (props.Keys()(i) & " is expecting a " & dataType & " value but has this value instead: " & props.Items()(i))
+                'MsgBox (props.Keys()(i) & " is expecting a " & dataType & " value but has this value instead: " & props.Items()(i))
+                optionStatus = optionStatus + props.Keys()(i) & " is expecting a " & dataType & " value but has this value instead: " & props.Items()(i) & vbNewLine
             End If
         ElseIf dataType = "datetime" Then
             If props.Items()(i) = "" Then
@@ -160,7 +188,8 @@ Function GetData(props As Scripting.Dictionary, lastRowNumber) As String
             ElseIf props.Items()(i) <> "" And IsDate(props.Items()(i)) Then
                 data = data & DQ & props.Keys()(i) & DQ & ":" & DQ & CDate(props.Items()(i)) & DQ & ","
             Else
-                MsgBox (props.Keys()(i) & " is expecting a " & dataType & " value but has this value instead: " & props.Items()(i))
+                'MsgBox (props.Keys()(i) & " is expecting a " & dataType & " value but has this value instead: " & props.Items()(i))
+                optionStatus = optionStatus + props.Keys()(i) & " is expecting a " & dataType & " value but has this value instead: " & props.Items()(i) & vbNewLine
             End If
         Else 'other types not number, currency,datetime
             If props.Items()(i) = "" Then
