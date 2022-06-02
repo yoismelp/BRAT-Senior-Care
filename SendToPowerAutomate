@@ -10,8 +10,10 @@ Sub Button1_Click()
         Worksheets("Cards Data Validation").Activate
         
         Dim reqUrl As String
-        reqUrl = "https://prod-104.westus.logic.azure.com:443/workflows/ed9c6ddbe2b64ce1baebc380e51f16dd/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=dRECGk3KXiN-sUcxiXY96vg5GUciRzEs8DbwDjG_p7g"
-        
+        'DEV
+		'reqUrl = "https://prod-104.westus.logic.azure.com:443/workflows/ed9c6ddbe2b64ce1baebc380e51f16dd/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=dRECGk3KXiN-sUcxiXY96vg5GUciRzEs8DbwDjG_p7g"
+        'PROD
+		reqUrl = "https://prod-65.westus.logic.azure.com:443/workflows/6887598794314b34a35012e8a35e2af0/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=m-_yZ70gWWWP02R9KUmlEa8_iFHLHW7NCkS5dScl7Gk"
         Dim indicatorOption_1 As String
         indicatorOption_1 = Worksheets("Risk Analysis").Range("L1256").Value
         Dim indicatorOption_2 As String
@@ -76,21 +78,25 @@ Sub Button1_Click()
         
         'Option 1 Loop
         Dim option1Status As String
+        Dim optionNumber As Integer
         option1Status = ""
         If propsDict1.Count > 0 Then
-            data = data & GetData(propsDict1, LAST_ROW_TO_READ, option1Status) & ",{"
+            optionNumber = 1
+            data = data & GetData(propsDict1, LAST_ROW_TO_READ, optionNumber, option1Status) & ",{"
         End If
         'Option 2 Loop
         Dim option2Status As String
         option2Status = ""
         If propsDict2.Count > 0 Then
-            data = data & GetData(propsDict2, LAST_ROW_TO_READ, option2Status) & ",{"
+            optionNumber = 2
+            data = data & GetData(propsDict2, LAST_ROW_TO_READ, optionNumber, option2Status) & ",{"
         End If
         'Option 3 Loop
         Dim option3Status As String
         option3Status = ""
         If propsDict3.Count > 0 Then
-            data = data & GetData(propsDict3, LAST_ROW_TO_READ, option3Status) & ",{"
+            optionNumber = 3
+            data = data & GetData(propsDict3, LAST_ROW_TO_READ, optionNumber, option3Status) & ",{"
         End If
         'END creating data part of JSON payload
         
@@ -134,20 +140,28 @@ Sub Button1_Click()
             Set JsonResponse = JsonConverter.ParseJson(RESPONSE)
             
             On Error GoTo APIResponse
-                option1Status = option1Status & JsonResponse(1)("Status Value") 'append to option 1 status
-                option2Status = option2Status & JsonResponse(2)("Status Value") 'append to option 2 status
-                option3Status = option3Status & JsonResponse(3)("Status Value") 'append to option 3 status
+				Dim i As Integer
+				i = 1
+				Do While 1 <= 3 'This loop finds which items were sent to the flow and sets the proper value to the Option # Status rows
+					If JsonResponse(i)("Option Number") = 1 Then
+						option1Status = option1Status & JsonResponse(i)("Status Value") 'append to option 1 status
+					ElseIf JsonResponse(i)("Option Number") = 2 Then
+						option2Status = option2Status & JsonResponse(i)("Status Value") 'append to option 2 status
+					Else
+						option3Status = option3Status & JsonResponse(i)("Status Value") 'append to option 3 status
+					End If
+					i = i + 1
+				Loop
 APIResponse:
                 If req.Status <> 200 Then
                     'MsgBox req.Status & " - " & req.StatusText
                     'Worksheets("ExportData").Range("P29").Value = req.Status & " - " & req.StatusText
-                    Worksheets("ExportData").Range("P29").Value = "Test. This part is still in development."
-                    Worksheets("ExportData").Activate
+                    Worksheets("ExportData").Range("P29").Value = ""
                     'Exit Function
                 Else
                     '****************Uncomment when deploy to prod*************************
                     'Worksheets("ExportData").Range("P29").Value = "Sent"
-                    Worksheets("ExportData").Range("P29").Value = "Test. This part is still in development."
+                    Worksheets("ExportData").Range("P29").Value = ""
                 End If
                 
                 Worksheets("ExportData").Range("P30").Value = option1Status
@@ -159,21 +173,22 @@ APIResponse:
                     '*************Uncomment when deploy to prod****************************
         'MsgBox ("Data did not send as Overall Status is not OK")
         'Worksheets("ExportData").Range("P29").Value = "Data did not send. Overall Status is not OK"
-        Worksheets("ExportData").Range("P29").Value = "Failed. Not deployed to production yet."
+        Worksheets("ExportData").Range("P29").Value = ""
     End If
 End Sub
 
-Function GetData(ByVal props As Scripting.Dictionary, ByVal lastRowNumber As Integer, ByRef optionStatus As String) As String
+Function GetData(ByVal props As Scripting.Dictionary, ByVal lastRowNumber As Integer, ByVal optionNumber As Integer, ByRef optionStatus As String) As String
     Dim data As String
     Dim dataType As String
     Dim DQ As String
     DQ = """"
+    data = data & DQ & "optionNumber" & DQ & ":" & optionNumber & ","
     For i = 0 To props.Count - 1
         dataType = CheckDataType(CStr(props.Keys()(i)), CStr(lastRowNumber))
         If dataType = "" Then
-            Debug.Print props.Keys()(i) & " No Included in JSon"
+            'Debug.Print props.Keys()(i) & " No Included in JSon"
         ElseIf dataType = "number" Or dataType = "currency" Then
-            Debug.Print DQ & props.Keys()(i) & DQ & ":" & props.Items()(i)
+            'Debug.Print DQ & props.Keys()(i) & DQ & ":" & props.Items()(i)
             If props.Items()(i) = "" Then
                 data = data & DQ & props.Keys()(i) & DQ & ":null,"
             ElseIf props.Items()(i) <> "" And IsNumeric(props.Items()(i)) Then
