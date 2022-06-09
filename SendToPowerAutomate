@@ -102,7 +102,7 @@ Sub Button1_Click()
         
         If option1Status <> "" Or option2Status <> "" Or option3Status <> "" Then
             'Set the Status for Option 1, 2, and 3 in Export Data and Overall Status to Invalid payload, see details below
-            Worksheets("ExportData").Range("P29").Value = "Test. This part is still in development."
+            Worksheets("ExportData").Range("P29").Value = ""
             Worksheets("ExportData").Range("P30").Value = option1Status
             Worksheets("ExportData").Range("P31").Value = option2Status
             Worksheets("ExportData").Range("P32").Value = option3Status
