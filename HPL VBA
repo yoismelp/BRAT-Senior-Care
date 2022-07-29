@@ -1,0 +1,677 @@
+Sub ExportData_w_Cards()
+
+Dim ModelWB As Workbook
+Dim wb As Workbook
+Dim ExportStatus As String
+Dim fullpath As String
+Dim NumVars As Integer
+Dim NextRec As Integer
+Dim i As Integer
+Dim j As Integer
+Dim NameArr() As Variant
+Dim ValueArr() As Variant
+Dim NumBound As Integer
+Dim NumQuote As Integer
+Dim NumIndication As Integer
+Dim ExportCount As Integer
+Dim ExportType As String
+Const VarNameRow = 3
+Const FirstCol = 2
+Dim Timestamp As String
+Dim option1Status, option2Status, option3Status As Boolean
+
+Err.Clear
+
+Set ModelWB = ThisWorkbook
+
+ExportStatus = Range("ExportStatus").Value
+
+If ExportStatus = "Not OK" Then GoTo NoExport
+
+Application.ScreenUpdating = False
+
+On Error GoTo CatchError
+
+Sheets("Export Data").Activate
+Range("B5").Copy
+Range("B5").PasteSpecial xlPasteValues
+
+
+'This section saves the Cards data to the HPL Data.xlsb file on SharePoint
+fullpath = "https://bowheadsi.sharepoint.com/sites/UnderwritingTeam/Shared%20Documents/Submissions/Data%20Capture/HPL%20Data.xlsb?web=1"
+'fullpath = "https://bowheadsi.sharepoint.com/sites/UnderwritingTeam/Shared%20Documents/Submissions/Testing/Data%20Capture%20Test/HPL%20Data.xlsb?web=1"
+
+NumVars = Range("NumVars").Value
+ReDim NameArr(NumVars)
+ReDim ValueArr(NumVars)
+NameArr = Application.WorksheetFunction.Transpose(Range("NameArr"))
+ValueArr1 = Application.WorksheetFunction.Transpose(Range("ValueArr1"))
+ValueArr2 = Application.WorksheetFunction.Transpose(Range("ValueArr2"))
+ValueArr3 = Application.WorksheetFunction.Transpose(Range("ValueArr3"))
+If Range("CardsExportOption1").Value = 1 Then option1Status = True
+If Range("CardsExportOption2").Value = 1 Then option2Status = True
+If Range("CardsExportOption3").Value = 1 Then option3Status = True
+    
+'Set wb = Workbooks.Open(fullpath)
+wb.Worksheets("Data").Unprotect Password:="Bowhead"
+
+'Only add rows for the options that are bound, quoted, or indicated
+If option1Status Then
+
+    With wb.Worksheets("Data")
+        NextRec = .Range("A1").Value
+        DestNameArr = .Range("C3", .Range("C3").End(xlToRight))
+        j = 1
+        For i = 1 To UBound(NameArr)
+            If i > UBound(DestNameArr, 2) Then
+                .Cells(VarNameRow, FirstCol + i).Value = NameArr(i)
+            Else
+                If NameArr(i) <> DestNameArr(1, j) Then
+                    .Columns(FirstCol + i).Insert
+                    .Cells(VarNameRow, FirstCol + i).Value = NameArr(i)
+                Else
+                    j = j + 1
+                End If
+            End If
+        Next i
+        .Cells(NextRec + VarNameRow, FirstCol).Value = NextRec
+        .Range(.Cells(NextRec + VarNameRow, FirstCol + 1), .Cells(NextRec + VarNameRow, FirstCol + UBound(NameArr))) = ValueArr1
+    End With
+End If
+    
+
+If option2Status Then
+
+    With wb.Worksheets("Data")
+        NextRec = .Range("A1").Value
+        DestNameArr = .Range("C3", .Range("C3").End(xlToRight))
+        j = 1
+        For i = 1 To UBound(NameArr)
+            If i > UBound(DestNameArr, 2) Then
+                .Cells(VarNameRow, FirstCol + i).Value = NameArr(i)
+            Else
+                If NameArr(i) <> DestNameArr(1, j) Then
+                    .Columns(FirstCol + i).Insert
+                    .Cells(VarNameRow, FirstCol + i).Value = NameArr(i)
+                Else
+                    j = j + 1
+                End If
+            End If
+        Next i
+        .Cells(NextRec + VarNameRow, FirstCol).Value = NextRec
+        .Range(.Cells(NextRec + VarNameRow, FirstCol + 1), .Cells(NextRec + VarNameRow, FirstCol + UBound(NameArr))) = ValueArr2
+    End With
+End If
+
+If option3Status Then
+
+    With wb.Worksheets("Data")
+        NextRec = .Range("A1").Value
+        DestNameArr = .Range("C3", .Range("C3").End(xlToRight))
+        j = 1
+        For i = 1 To UBound(NameArr)
+            If i > UBound(DestNameArr, 2) Then
+                .Cells(VarNameRow, FirstCol + i).Value = NameArr(i)
+            Else
+                If NameArr(i) <> DestNameArr(1, j) Then
+                    .Columns(FirstCol + i).Insert
+                    .Cells(VarNameRow, FirstCol + i).Value = NameArr(i)
+                Else
+                    j = j + 1
+                End If
+            End If
+        Next i
+        .Cells(NextRec + VarNameRow, FirstCol).Value = NextRec
+        .Range(.Cells(NextRec + VarNameRow, FirstCol + 1), .Cells(NextRec + VarNameRow, FirstCol + UBound(NameArr))) = ValueArr3
+    End With
+End If
+
+    
+wb.Worksheets("Data").Protect Password:="Bowhead"
+wb.Close SaveChanges:=True
+
+
+
+
+'Save Excel files to SharePoint for each table that gets uploaded
+
+'Save Tables to csv's on SharePoint
+Timestamp = Format(Now, "mm-dd-yyyy HH-mm-ss")
+
+Range("UploadUser").Value = Application.UserName
+
+Dim rng As Range, cellValue As Variant, SharePoint_losses As String, SharePoint_AccountInfo As String, SharePoint_Expo As String, SharePoint_Locations As String, SharePoint_Tower As String
+
+
+'SharePoint_losses = "https://bowheadsi.sharepoint.com/sites/UnderwritingTeam/Shared Documents/Submissions/Data Capture/Healthcare/HPL/Losses/" & Range("Insured").Value & " Losses " & Timestamp & ".xlsx?web=1"
+'t = MsgBox(SharePoint_losses, vbOKOnly)
+'Range("LossTable[#All]").Copy
+'Application.Workbooks.Add
+'Range("A1").PasteSpecial xlPasteValues
+'ActiveWorkbook.SaveAs Filename:=SharePoint_losses
+'ActiveWorkbook.Close
+
+
+'ModelWB.Activate
+'SharePoint_AccountInfo = "https://bowheadsi.sharepoint.com/sites/UnderwritingTeam/Shared Documents/Submissions/Data Capture/Healthcare/HPL/AccountInfo/" & Range("Insured").Value & " AccountInfo " & Timestamp & ".xlsx?web=1"
+'Range("AccountInfo[#All]").Copy
+'Application.Workbooks.Add
+'Range("A1").PasteSpecial xlPasteValues
+'ActiveWorkbook.SaveAs Filename:=SharePoint_AccountInfo
+'ActiveWorkbook.Close
+
+
+'ModelWB.Activate
+'SharePoint_Expo = "https://bowheadsi.sharepoint.com/sites/UnderwritingTeam/Shared Documents/Submissions/Data Capture/Healthcare/HPL/Exposure/" & Range("Insured").Value & " Exposure " & Timestamp & ".xlsx?web=1"
+'Range("ExposureTable[#All]").Copy
+'Application.Workbooks.Add
+'Range("A1").PasteSpecial xlPasteValues
+'ActiveWorkbook.SaveAs Filename:=SharePoint_Expo
+'ActiveWorkbook.Close
+
+
+'ModelWB.Activate
+'SharePoint_Locations = "https://bowheadsi.sharepoint.com/sites/UnderwritingTeam/Shared Documents/Submissions/Data Capture/Healthcare/HPL/Locations/" & Range("Insured").Value & " Locations " & Timestamp & ".xlsx?web=1"
+'Range("LocationTable[#All]").Copy
+'Application.Workbooks.Add
+'Range("A1").PasteSpecial xlPasteValues
+'ActiveWorkbook.SaveAs Filename:=SharePoint_Locations
+'ActiveWorkbook.Close
+
+
+'ModelWB.Activate
+'SharePoint_Tower = "https://bowheadsi.sharepoint.com/sites/UnderwritingTeam/Shared Documents/Submissions/Data Capture/Healthcare/HPL/Tower/" & Range("Insured").Value & " Tower " & Timestamp & ".xlsx?web=1"
+'Range("TowerTable[#All]").Copy
+'Application.Workbooks.Add
+'Range("A1").PasteSpecial xlPasteValues
+'ActiveWorkbook.SaveAs Filename:=SharePoint_Tower
+'ActiveWorkbook.Close
+
+'ModelWB.Activate
+'SharePoint_Cards = "https://bowheadsi.sharepoint.com/sites/UnderwritingTeam/Shared Documents/Submissions/Data Capture/Healthcare/HPL/Cards/" & Range("Insured").Value & " Cards " & Timestamp & ".xlsx?web=1"
+'Range("CardsTable[#All]").Copy
+'Application.Workbooks.Add
+'Range("A1").PasteSpecial xlPasteValues
+'ActiveWorkbook.SaveAs Filename:=SharePoint_Cards
+'ActiveWorkbook.Close
+
+
+
+
+
+'Yoismel's code
+'Need to add this line and select worksheet we are going to be
+    'pulling values from. In our case, it will be the DataCard
+    
+    
+    Worksheets("ExportData").Unprotect Password:="Bowhead"
+    Worksheets("Cards Data Validation").Unprotect Password:="Bowhead"
+    'Calling farther below to pass error
+    'CallAPI()
+	'Dim api As String
+	'api = CallAPI()
+'YOISMEL'S CODE PART 1 ENDS. SCROLL DOWN FOR PART 2
+
+
+
+ModelWB.Worksheets("ExportData").Activate
+ExportCount = Range("ExportCount").Value
+NumBound = Range("NumBound").Value
+NumQuote = Range("NumQuote").Value
+NumIndication = Range("NumIndication").Value
+
+
+If NumBound > 0 Then
+    ExportType = "Bound"
+ElseIf NumQuote > 0 Then
+    ExportType = "Quote"
+Else
+    ExportType = "Indication"
+End If
+
+
+ExportType = ExportType + ", Include Cards, SharePoint Sent Status: " + Range("P31").Value + " " + Range("P32").Value + " " + Range("P33").Value
+
+'ExportType = ExportType + ", Include Cards"
+
+
+
+ActiveSheet.Unprotect Password:="Bowhead"
+
+Sheets("ExportData").Range("LogStart").Offset(ExportCount, 0).Value = Application.UserName
+Sheets("ExportData").Range("LogStart").Offset(ExportCount, 1).Value = Date
+Sheets("ExportData").Range("LogStart").Offset(ExportCount, 2).Value = Time
+Sheets("ExportData").Range("LogStart").Offset(ExportCount, 3).Value = ExportType
+
+MsgBox ("Export was successful")
+
+Sheets("Export Data").Activate
+Range("B5").Formula = "=YEAR(UploadTime)&TEXT(MONTH(UploadTime),""00"")&TEXT(DAY(UploadTime),""00"")&TEXT(HOUR(UploadTime),""00"")&TEXT(MINUTE(UploadTime),""00"")&TEXT(SECOND(UploadTime),""00"")"
+
+ModelWB.Worksheets("ExportData").Activate
+'ActiveSheet.Protect Password:="Bowhead"
+
+           
+CatchError:
+ModelWB.Worksheets("ExportData").Activate
+Range("A1").Select
+Application.ScreenUpdating = True
+
+If (Err.Number <> 0) And (Err.Number <> 40040) And (Err.Number <> 9) Then MsgBox (Err.Description & " The errorcode is : " & Err.Number)
+
+   Exit Function
+
+NoExport:
+MsgBox ("Not OK to export")
+'Dim api As String
+'api = CallAPI()
+End Sub
+
+
+
+
+Sub ExportData_NO_Cards()
+
+Dim ModelWB As Workbook
+Dim wb As Workbook
+Dim ExportStatus As String
+Dim fullpath As String
+Dim NumVars As Integer
+Dim NextRec As Integer
+Dim i As Integer
+Dim j As Integer
+Dim NameArr() As Variant
+Dim ValueArr() As Variant
+Dim NumBound As Integer
+Dim NumQuote As Integer
+Dim NumIndication As Integer
+Dim ExportCount As Integer
+Dim ExportType As String
+Const VarNameRow = 3
+Const FirstCol = 2
+Dim Timestamp As String
+Dim option1Status, option2Status, option3Status As Boolean
+
+Err.Clear
+
+Set ModelWB = ThisWorkbook
+
+ExportStatus = Range("ExportStatusDCOnly").Value
+
+If ExportStatus = "Not OK" Then GoTo NoExport
+
+Application.ScreenUpdating = False
+
+On Error GoTo CatchError
+
+Sheets("Export Data").Activate
+Range("B5").Copy
+Range("B5").PasteSpecial xlPasteValues
+
+
+'Save Excel files to SharePoint for each table that gets uploaded
+
+'Save Tables to csv's on SharePoint
+Timestamp = Format(Now, "mm-dd-yyyy HH-mm-ss")
+
+Range("UploadUser").Value = Application.UserName
+
+Dim rng As Range, cellValue As Variant, SharePoint_losses As String, SharePoint_AccountInfo As String, SharePoint_Expo As String, SharePoint_Locations As String, SharePoint_Tower As String
+
+
+SharePoint_losses = "https://bowheadsi.sharepoint.com/sites/UnderwritingTeam/Shared Documents/Submissions/Data Capture/Healthcare/HPL/Losses/" & Range("Insured").Value & " Losses " & Timestamp & ".xlsx?web=1"
+'t = MsgBox(SharePoint_losses, vbOKOnly)
+Range("LossTable[#All]").Copy
+Application.Workbooks.Add
+Range("A1").PasteSpecial xlPasteValues
+ActiveWorkbook.SaveAs Filename:=SharePoint_losses
+ActiveWorkbook.Close
+
+
+ModelWB.Activate
+SharePoint_AccountInfo = "https://bowheadsi.sharepoint.com/sites/UnderwritingTeam/Shared Documents/Submissions/Data Capture/Healthcare/HPL/AccountInfo/" & Range("Insured").Value & " AccountInfo " & Timestamp & ".xlsx?web=1"
+Range("AccountInfo[#All]").Copy
+Application.Workbooks.Add
+Range("A1").PasteSpecial xlPasteValues
+ActiveWorkbook.SaveAs Filename:=SharePoint_AccountInfo
+ActiveWorkbook.Close
+
+
+ModelWB.Activate
+SharePoint_Expo = "https://bowheadsi.sharepoint.com/sites/UnderwritingTeam/Shared Documents/Submissions/Data Capture/Healthcare/HPL/Exposure/" & Range("Insured").Value & " Exposure " & Timestamp & ".xlsx?web=1"
+Range("ExposureTable[#All]").Copy
+Application.Workbooks.Add
+Range("A1").PasteSpecial xlPasteValues
+ActiveWorkbook.SaveAs Filename:=SharePoint_Expo
+ActiveWorkbook.Close
+
+
+ModelWB.Activate
+SharePoint_Locations = "https://bowheadsi.sharepoint.com/sites/UnderwritingTeam/Shared Documents/Submissions/Data Capture/Healthcare/HPL/Locations/" & Range("Insured").Value & " Locations " & Timestamp & ".xlsx?web=1"
+Range("LocationTable[#All]").Copy
+Application.Workbooks.Add
+Range("A1").PasteSpecial xlPasteValues
+ActiveWorkbook.SaveAs Filename:=SharePoint_Locations
+ActiveWorkbook.Close
+
+
+ModelWB.Activate
+SharePoint_Tower = "https://bowheadsi.sharepoint.com/sites/UnderwritingTeam/Shared Documents/Submissions/Data Capture/Healthcare/HPL/Tower/" & Range("Insured").Value & " Tower " & Timestamp & ".xlsx?web=1"
+Range("TowerTable[#All]").Copy
+Application.Workbooks.Add
+Range("A1").PasteSpecial xlPasteValues
+ActiveWorkbook.SaveAs Filename:=SharePoint_Tower
+ActiveWorkbook.Close
+
+ModelWB.Activate
+SharePoint_Cards = "https://bowheadsi.sharepoint.com/sites/UnderwritingTeam/Shared Documents/Submissions/Data Capture/Healthcare/HPL/Cards/" & Range("Insured").Value & " Cards " & Timestamp & ".xlsx?web=1"
+Range("CardsTable[#All]").Copy
+Application.Workbooks.Add
+Range("A1").PasteSpecial xlPasteValues
+ActiveWorkbook.SaveAs Filename:=SharePoint_Cards
+ActiveWorkbook.Close
+
+ModelWB.Worksheets("ExportData").Activate
+ExportCount = Range("ExportCount").Value
+NumBound = Range("NumBound").Value
+NumQuote = Range("NumQuote").Value
+NumIndication = Range("NumIndication").Value
+
+
+If NumBound > 0 Then
+    ExportType = "Bound"
+ElseIf NumQuote > 0 Then
+    ExportType = "Quote"
+Else
+    ExportType = "Indication"
+End If
+
+ExportType = ExportType + ", Data Capture Only"
+
+
+ActiveSheet.Unprotect Password:="Bowhead"
+
+Sheets("ExportData").Range("LogStart").Offset(ExportCount, 0).Value = Application.UserName
+Sheets("ExportData").Range("LogStart").Offset(ExportCount, 1).Value = Date
+Sheets("ExportData").Range("LogStart").Offset(ExportCount, 2).Value = Time
+Sheets("ExportData").Range("LogStart").Offset(ExportCount, 3).Value = ExportType
+
+MsgBox ("Export was successful")
+          
+Sheets("Export Data").Activate
+Range("B5").Formula = "=YEAR(UploadTime)&TEXT(MONTH(UploadTime),""00"")&TEXT(DAY(UploadTime),""00"")&TEXT(HOUR(UploadTime),""00"")&TEXT(MINUTE(UploadTime),""00"")&TEXT(SECOND(UploadTime),""00"")"
+           
+ModelWB.Worksheets("ExportData").Activate
+'ActiveSheet.Protect Password:="Bowhead"
+          
+CatchError:
+ModelWB.Worksheets("ExportData").Activate
+Range("A1").Select
+Application.ScreenUpdating = True
+If (Err.Number <> 0) And (Err.Number <> 40040) Then MsgBox (Err.Description & " The errorcode is : " & Err.Number)
+
+Exit Sub
+
+NoExport:
+MsgBox ("Not OK to export")
+
+End Sub
+
+'YOISMEL'S CODE PART 2
+Function CallAPI() As String
+Dim OVERALL_STATUS As String
+    'OVERALL_STATUS needs to reference O28 instead of O29
+    OVERALL_STATUS = Worksheets("ExportData").Range("ExportStatus").Value
+    Dim LAST_ROW_TO_READ As String
+    LAST_ROW_TO_READ = Worksheets("HPL JSON Helper").Range("E1").Value
+    
+    If OVERALL_STATUS = "OK" Then
+        Worksheets("Cards Data Validation").Activate
+        
+        Dim reqUrl As String
+        'DEV Dev
+        reqUrl = "https://prod-141.westus.logic.azure.com:443/workflows/f65ffd1e5fc34a5ba558293cdd135374/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=YV6hVapQC8tTsl0yQF7UdHzbY6ELrSvzQwvTSIZVP_s"
+        'DEV Prod
+        'reqUrl = "https://prod-65.westus.logic.azure.com:443/workflows/6887598794314b34a35012e8a35e2af0/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=m-_yZ70gWWWP02R9KUmlEa8_iFHLHW7NCkS5dScl7Gk"
+        'PROD
+        'reqUrl = "https://prod-62.westus.logic.azure.com:443/workflows/52f5d82e02ad49d9b406677e011a60c5/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=uCuv5Rl0XBfpsBPFmSj0MAQcCM5p9IP_YGBooovp69s"
+        Dim indicatorOption_1 As String
+        indicatorOption_1 = Worksheets("Risk Analysis").Range("L199").Value
+        Dim indicatorOption_2 As String
+        indicatorOption_2 = Worksheets("Risk Analysis").Range("AB199").Value
+        Dim indicatorOption_3 As String
+        indicatorOption_3 = Worksheets("Risk Analysis").Range("AR199").Value
+        
+        Dim DQ As String
+        DQ = """"
+        Dim NL As String
+        NL = vbNewLine
+        Dim VT As String
+        VT = vbTab
+        
+        Dim CURRENT_USER As String
+        CURRENT_USER = Application.UserName
+        
+        Dim VERSION As String
+        VERSION = Worksheets("Risk Analysis").Range("E7").Value
+        
+        Dim dt As Object, utc As Date
+        Set dt = CreateObject("WbemScripting.SWbemDateTime")
+        dt.SetVarDate Now
+        utc = dt.GetVarDate(False)
+        
+        Dim json As String
+        json = "{" & _
+            DQ & "updatedBy" & DQ & ":" & DQ & CURRENT_USER & DQ & "," & _
+            DQ & "updatedAt" & DQ & ":" & DQ & utc & DQ & "," & _
+            DQ & "updatedComment" & DQ & ":" & DQ & DQ & "," & _
+                DQ & "HPL" & DQ & ":{" & _
+                DQ & "version" & DQ & ":" & DQ & VERSION & DQ & "," & _
+                DQ & "name" & DQ & ":" & DQ & "SC" & DQ & _
+                "}," & _
+                DQ & "data" & DQ & ":[{"
+                
+        'Need to add Microsoft Scripting Runtime Reference
+        Dim propsDict1 As Scripting.Dictionary
+        'Set propsDict1 = New Dictionary
+        
+        Dim propsDict2 As Scripting.Dictionary
+        'Set propsDict2 = New Dictionary
+        
+        Dim propsDict3 As Scripting.Dictionary
+        'Set propsDict3 = New Dictionary
+        
+        Dim r As Range
+        Dim iterator As Integer
+        iterator = 0
+        
+        'START setting dictionaries to use for constructing the JSON data prop
+        Set propsDict1 = GetOption(CStr(indicatorOption_1), "B7:B", CInt(LAST_ROW_TO_READ))
+        ''Debug.Print indicator
+        Set propsDict2 = GetOption(CStr(indicatorOption_2), "E7:E", CInt(LAST_ROW_TO_READ))
+        ''Debug.Print indicator
+        Set propsDict3 = GetOption(CStr(indicatorOption_3), "H7:H", CInt(LAST_ROW_TO_READ))
+        'END setting dictionaries to use for constructing the JSON data prop
+        
+        'START creating data part of JSON payload
+        Dim data As String
+        data = ""
+        
+        'Option 1 Loop
+        Dim option1Status_ As String
+        Dim optionNumber_ As Integer
+        option1Status_ = ""
+        If propsDict1.Count > 0 Then
+            optionNumber = 1
+            data = data & GetData(propsDict1, LAST_ROW_TO_READ, optionNumber, option1Status_) & ",{"
+        End If
+        'Option 2 Loop
+        Dim option2Status_ As String
+        option2Status_ = ""
+        If propsDict2.Count > 0 Then
+            optionNumber = 2
+            data = data & GetData(propsDict2, LAST_ROW_TO_READ, optionNumber, option2Status_) & ",{"
+        End If
+        'Option 3 Loop
+        Dim option3Status_ As String
+        option3Status_ = ""
+        If propsDict3.Count > 0 Then
+            optionNumber = 3
+            data = data & GetData(propsDict3, LAST_ROW_TO_READ, optionNumber, option3Status_) & ",{"
+        End If
+        'END creating data part of JSON payload
+        
+        If option1Status_ <> "" Or option2Status_ <> "" Or option3Status_ <> "" Then
+            'Set the Status for Option 1, 2, and 3 in Export Data and Overall Status to Invalid payload, see details below
+            Worksheets("ExportData").Range("O29").Value = ""
+            Worksheets("ExportData").Range("O30").Value = option1Status_
+            Worksheets("ExportData").Range("O31").Value = option2Status_
+            Worksheets("ExportData").Range("O32").Value = option3Status_
+            Worksheets("ExportData").Activate
+            Exit Function
+        End If
+        
+        'Remove last ,{ from data then
+        'Add data for Option 1,2, and 3 to json
+        If data <> "" Then
+            data = Left(data, Len(data) - 2)
+            json = json & data
+        
+            'Close data and master json opening
+            json = json & "]}"
+            json = Replace(json, vbLf, "")
+            
+            'This will make the generated JSON visible if need to troubleshoot
+            Range("B" & CStr(CInt(LAST_ROW_TO_READ) + 2)).Value = json
+            ''Debug.Print json
+        
+            'API Call
+            'Need to add Microsoft XML v6.0
+            Dim req As New MSXML2.ServerXMLHTTP60
+        
+            Dim RESPONSE As String
+        
+            req.Open "POST", reqUrl, False
+            req.setRequestHeader "Content-Type", "application/json"
+        
+            req.send json
+        
+            RESPONSE = req.responseText
+            Dim JsonResponse As Object
+            Set JsonResponse = JsonConverter.ParseJson(RESPONSE)
+            
+            On Error GoTo APIResponse
+                Dim ix As Integer
+                ix = 1
+                Do While 1 <= 3 'This loop finds which items were sent to the flow and sets the proper value to the Option # Status rows
+                    If JsonResponse(ix)("Option Number") = 1 Then
+                        option1Status_ = option1Status_ & JsonResponse(ix)("Status Value") 'append to option 1 status
+                    ElseIf JsonResponse(ix)("Option Number") = 2 Then
+                        option2Status_ = option2Status_ & JsonResponse(ix)("Status Value") 'append to option 2 status
+                    Else
+                        option3Status_ = option3Status_ & JsonResponse(ix)("Status Value") 'append to option 3 status
+                    End If
+                    ix = ix + 1
+                Loop
+APIResponse:
+                If req.Status <> 200 Then
+                    'MsgBox req.Status & " - " & req.StatusText
+                    'Worksheets("ExportData").Range("O29").Value = req.Status & " - " & req.StatusText
+                    Worksheets("ExportData").Range("O29").Value = ""
+                    'Exit Function
+                Else
+                    '****************Uncomment when deploy to prod*************************
+                    'Worksheets("ExportData").Range("P29").Value = "Sent"
+                    Worksheets("ExportData").Range("O9").Value = ""
+                End If
+                
+                Worksheets("ExportData").Range("O30").Value = option1Status_
+                Worksheets("ExportData").Range("O31").Value = option2Status_
+                Worksheets("ExportData").Range("O32").Value = option3Status_
+        End If
+        Worksheets("ExportData").Activate
+    Else
+                    '*************Uncomment when deploy to prod****************************
+        'MsgBox ("Data did not send as Overall Status is not OK")
+        'Worksheets("ExportData").Range("O29").Value = "Data did not send. Overall Status is not OK"
+        Worksheets("ExportData").Range("O29").Value = ""
+    End If
+    CallAPI = "API Called"
+End Function
+
+Function GetData(ByVal props As Scripting.Dictionary, ByVal lastRowNumber As Integer, ByVal optionNumber As Integer, ByRef optionStatus As String) As String
+    Dim data As String
+    Dim dataType As String
+    Dim DQ As String
+    DQ = """"
+    data = data & DQ & "optionNumber" & DQ & ":" & optionNumber & ","
+    For i = 0 To props.Count - 1
+        dataType = CheckDataType(CStr(props.Keys()(i)), CStr(lastRowNumber))
+        If dataType = "" Then
+            'Debug.Print props.Keys()(i) & " No Included in JSon"
+        ElseIf dataType = "number" Or dataType = "currency" Then
+            'Debug.Print DQ & props.Keys()(i) & DQ & ":" & props.Items()(i)
+            If props.Items()(i) = "" Then
+                data = data & DQ & props.Keys()(i) & DQ & ":null,"
+            ElseIf props.Items()(i) <> "" And IsNumeric(props.Items()(i)) Then
+                data = data & DQ & props.Keys()(i) & DQ & ":" & props.Items()(i) & ","
+            Else
+                'MsgBox (props.Keys()(i) & " is expecting a " & dataType & " value but has this value instead: " & props.Items()(i))
+                optionStatus = optionStatus + props.Keys()(i) & " is expecting a " & dataType & " value but has this value instead: " & props.Items()(i) & vbNewLine
+            End If
+        ElseIf dataType = "datetime" Then
+            If props.Items()(i) = "" Then
+                data = data & DQ & props.Keys()(i) & DQ & ":null,"
+            ElseIf props.Items()(i) <> "" And IsDate(props.Items()(i)) Then
+                data = data & DQ & props.Keys()(i) & DQ & ":" & DQ & CDate(props.Items()(i)) & DQ & ","
+            Else
+                'MsgBox (props.Keys()(i) & " is expecting a " & dataType & " value but has this value instead: " & props.Items()(i))
+                optionStatus = optionStatus + props.Keys()(i) & " is expecting a " & dataType & " value but has this value instead: " & props.Items()(i) & vbNewLine
+            End If
+        Else 'other types not number, currency,datetime
+            If props.Items()(i) = "" Then
+                data = data & DQ & props.Keys()(i) & DQ & ":null,"
+            Else
+                data = data & DQ & props.Keys()(i) & DQ & ":" & DQ & props.Items()(i) & DQ & ","
+            End If
+            ''Debug.Print props.Keys()(i) & " "; dataType
+        End If
+    Next i
+    data = Left(data, Len(data) - 1)
+    data = data & "}"
+    GetData = data
+End Function
+
+Function CheckDataType(fieldName As String, lastRowNumber As String) As String
+    Dim dataType As String
+    Set myRange = Worksheets("HPL JSON Helper").Range("A2:B" & lastRowNumber)
+    On Error GoTo Message
+        CheckDataType = Application.WorksheetFunction.VLookup(fieldName, myRange, 2, False)
+Message:
+End Function
+
+Function GetOption(indicator As String, myRange As String, lastRow As Integer) As Scripting.Dictionary
+    Dim propsDict As Scripting.Dictionary
+    Set propsDict = New Scripting.Dictionary
+    Dim iterator As Integer
+    iterator = 0
+    
+    If indicator = "Bound" Then
+    
+        For Each r In Range(myRange & CStr(lastRow)) 'setting dynamic range based on input number value in JSON Helper Tab
+            If Not IsEmpty(r.Value) And r.Value <> "Hospitals View" And r.Value <> "" Then
+                propsDict.Add r.Value, r.Offset(0, 1)
+                'Debug.Print r.Value & " " & r.Offset(0, 1)
+            End If
+            iterator = iterator + 1
+            If iterator >= lastRow Then
+                Exit For
+            End If
+            'If r.Value = "END" Then
+                'Exit For
+            'End If
+        Next r
+    End If
+    
+    Set GetOption = propsDict
+End Function
