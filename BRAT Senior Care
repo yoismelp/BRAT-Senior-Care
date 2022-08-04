@@ -127,7 +127,8 @@ Sub Button1_Click()
             'API Call
             'Need to add Microsoft XML v6.0
             Dim req As New MSXML2.ServerXMLHTTP60
-        
+            req.setTimeouts 0, 120000, 60000, 60000
+	    
             Dim RESPONSE As String
         
             req.Open "POST", reqUrl, False
