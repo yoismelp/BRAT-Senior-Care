@@ -208,8 +208,6 @@ Dim rng As Range, cellValue As Variant, SharePoint_losses As String, SharePoint_
     Worksheets("Cards Data Validation").Unprotect Password:="Bowhead"
     'Calling farther below to pass error
     'CallAPI()
-	'Dim api As String
-	'api = CallAPI()
 'YOISMEL'S CODE PART 1 ENDS. SCROLL DOWN FOR PART 2
 
 
@@ -257,14 +255,15 @@ ModelWB.Worksheets("ExportData").Activate
 Range("A1").Select
 Application.ScreenUpdating = True
 
-If (Err.Number <> 0) And (Err.Number <> 40040) And (Err.Number <> 9) Then MsgBox (Err.Description & " The errorcode is : " & Err.Number)
+'Added Err.Number <> 1004 and commented Exit Function
+If (Err.Number <> 0) And (Err.Number <> 40040) And (Err.Number <> 9) And (Err.Number <> 1004) Then MsgBox (Err.Description & " The errorcode is : " & Err.Number)
 
-   Exit Function
+   'Exit Function
 
 NoExport:
 MsgBox ("Not OK to export")
-'Dim api As String
-'api = CallAPI()
+Dim api As String
+api = CallAPI()
 End Sub
 
 
@@ -421,7 +420,7 @@ End Sub
 Function CallAPI() As String
 Dim OVERALL_STATUS As String
     'OVERALL_STATUS needs to reference O28 instead of O29
-    OVERALL_STATUS = Worksheets("ExportData").Range("ExportStatus").Value
+    OVERALL_STATUS = Worksheets("ExportData").Range("P28").Value
     Dim LAST_ROW_TO_READ As String
     LAST_ROW_TO_READ = Worksheets("HPL JSON Helper").Range("E1").Value
     
@@ -465,7 +464,7 @@ Dim OVERALL_STATUS As String
             DQ & "updatedBy" & DQ & ":" & DQ & CURRENT_USER & DQ & "," & _
             DQ & "updatedAt" & DQ & ":" & DQ & utc & DQ & "," & _
             DQ & "updatedComment" & DQ & ":" & DQ & DQ & "," & _
-                DQ & "HPL" & DQ & ":{" & _
+                DQ & "BRAT" & DQ & ":{" & _
                 DQ & "version" & DQ & ":" & DQ & VERSION & DQ & "," & _
                 DQ & "name" & DQ & ":" & DQ & "SC" & DQ & _
                 "}," & _
@@ -548,13 +547,15 @@ Dim OVERALL_STATUS As String
             'API Call
             'Need to add Microsoft XML v6.0
             Dim req As New MSXML2.ServerXMLHTTP60
-        
+            req.setTimeouts 0, 120000, 60000, 60000
+            
             Dim RESPONSE As String
-        
+            
             req.Open "POST", reqUrl, False
             req.setRequestHeader "Content-Type", "application/json"
         
             req.send json
+            
         
             RESPONSE = req.responseText
             Dim JsonResponse As Object
@@ -659,7 +660,7 @@ Function GetOption(indicator As String, myRange As String, lastRow As Integer) A
     If indicator = "Bound" Then
     
         For Each r In Range(myRange & CStr(lastRow)) 'setting dynamic range based on input number value in JSON Helper Tab
-            If Not IsEmpty(r.Value) And r.Value <> "Hospitals View" And r.Value <> "" Then
+            If Not IsEmpty(r.Value) And r.Value <> "Senior Care View" And r.Value <> "" Then
                 propsDict.Add r.Value, r.Offset(0, 1)
                 'Debug.Print r.Value & " " & r.Offset(0, 1)
             End If
