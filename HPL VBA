@@ -466,7 +466,7 @@ Dim OVERALL_STATUS As String
             DQ & "updatedComment" & DQ & ":" & DQ & DQ & "," & _
                 DQ & "BRAT" & DQ & ":{" & _
                 DQ & "version" & DQ & ":" & DQ & VERSION & DQ & "," & _
-                DQ & "name" & DQ & ":" & DQ & "SC" & DQ & _
+                DQ & "name" & DQ & ":" & DQ & "HPL" & DQ & _
                 "}," & _
                 DQ & "data" & DQ & ":[{"
                 
