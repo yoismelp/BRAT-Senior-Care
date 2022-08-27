@@ -1,0 +1,77 @@
+    Range("LossTable[#All]").Select
+    Selection.Copy
+    Sheets.Add After:=ActiveSheet
+    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+        :=False, Transpose:=False
+    Application.CutCopyMode = False
+     Range("CK1").Select
+    ActiveCell.FormulaR1C1 = "eight"
+    Range("CL1").Select
+    ActiveCell.FormulaR1C1 = "nine"
+    Range("CM1").Select
+    ActiveCell.FormulaR1C1 = "Ten"
+    Range("CN1").Select
+    ActiveCell.FormulaR1C1 = "eleven"
+    Range("CO1").Select
+    ActiveCell.FormulaR1C1 = "twelve"
+    Range("CP1").Select
+    ActiveCell.FormulaR1C1 = "thirteen"
+    Range("CQ1").Select
+    ActiveCell.FormulaR1C1 = "fourteen"
+    Range("CR1").Select
+    ActiveCell.FormulaR1C1 = "fifteen"
+    Range("CS1").Select
+    ActiveCell.FormulaR1C1 = "sixteen"
+    Range("CT1").Select
+    ActiveCell.FormulaR1C1 = "seventeen"
+    Range("CU1").Select
+    ActiveCell.FormulaR1C1 = "eighteen"
+    Range("CV1").Select
+    ActiveCell.FormulaR1C1 = "nineteen"
+    Range("CW1").Select
+    ActiveCell.FormulaR1C1 = "twnty"
+    Range("CX1").Select
+    ActiveCell.FormulaR1C1 = "twentyone"
+    Range("CY1").Select
+    ActiveCell.FormulaR1C1 = "twentytwo"
+    Range("CZ1").Select
+    ActiveCell.FormulaR1C1 = "twentythree"
+    Range("DA1").Select
+    ActiveCell.FormulaR1C1 = "twentyFour"
+    Range("DB1").Select
+    ActiveCell.FormulaR1C1 = "twentyFive"
+    'Added manually
+    Range("F1").Select
+    ActiveCell.FormulaR1C1 = "Insured ID"
+    Range("H1").Select
+    ActiveCell.FormulaR1C1 = "Policy Number"
+    Range("O1").Select
+    ActiveCell.FormulaR1C1 = "IncludeExclude_1_0"
+    Range("T1").Select
+    ActiveCell.FormulaR1C1 = "Claim Type"
+    Range("X1").Select
+    ActiveCell.FormulaR1C1 = "ClaimStatus_X1"
+    Range("AO1").Select
+    ActiveCell.FormulaR1C1 = "IncludeExclude"
+    Range("AP1").Select
+    ActiveCell.FormulaR1C1 = "CM_Occ"
+    Range("AV1").Select
+    ActiveCell.FormulaR1C1 = "Incurred_Ind_ALAE"
+    Range("BF1").Select
+    ActiveCell.FormulaR1C1 = "Limite_Base_LossALAE"
+    Range("BR1").Select
+    ActiveCell.FormulaR1C1 = "Trended_Ind_ALAE"
+    Range("BW1").Select
+    ActiveCell.FormulaR1C1 = "LimitedBase_Trended_Loss_ALAE"
+    Range("BX1").Select
+    ActiveCell.FormulaR1C1 = "LimitedBase_Trended_IndemintyOnly"
+    Range("BX1").Select
+    ActiveCell.FormulaR1C1 = "LimitedBase_Trended_IndemintyOnly"
+    Range("BY1").Select
+    ActiveCell.FormulaR1C1 = "Base_Trended_NonZero_Count_Layer"
+    Range("CA1").Select
+    ActiveCell.FormulaR1C1 = "Combined Scen 1 Trended nonzero count in layer"
+    
+    ActiveWorkbook.SaveAs Filename:= _
+        "https://ars365.sharepoint.com/sites/spit/admin/dev/Shared%20Documents/BRAT%20HPL%20v2.4%20-%20WIP%20-%20Dev.csv" _
+        , FileFormat:=xlCSV, CreateBackup:=False
