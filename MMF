@@ -176,3 +176,80 @@ APIResponse:
     End If
     CallAPI = "API Called"
 End Function
+
+Function GetData(ByVal props As Scripting.Dictionary, ByVal lastRowNumber As Integer, ByVal optionNumber As Integer, ByRef optionStatus As String) As String
+    Dim data As String
+    Dim dataType As String
+    Dim DQ As String
+    DQ = """"
+    data = data & DQ & "optionNumber" & DQ & ":" & optionNumber & ","
+    For i = 0 To props.Count - 1
+        dataType = CheckDataType(CStr(props.Keys()(i)), CStr(lastRowNumber))
+        If dataType = "" Then
+            Debug.Print props.Keys()(i) & " No Included in JSon"
+        ElseIf dataType = "number" Or dataType = "currency" Then
+            Debug.Print DQ & props.Keys()(i) & DQ & ":" & props.Items()(i)
+            If props.Items()(i) = "" Then
+                data = data & DQ & props.Keys()(i) & DQ & ":null,"
+            ElseIf props.Items()(i) <> "" And IsNumeric(props.Items()(i)) Then
+                data = data & DQ & props.Keys()(i) & DQ & ":" & props.Items()(i) & ","
+            Else
+                'MsgBox (props.Keys()(i) & " is expecting a " & dataType & " value but has this value instead: " & props.Items()(i))
+                optionStatus = optionStatus + props.Keys()(i) & " is expecting a " & dataType & " value but has this value instead: " & props.Items()(i) & vbNewLine
+            End If
+        ElseIf dataType = "datetime" Then
+            If props.Items()(i) = "" Then
+                data = data & DQ & props.Keys()(i) & DQ & ":null,"
+            ElseIf props.Items()(i) <> "" And IsDate(props.Items()(i)) Then
+                data = data & DQ & props.Keys()(i) & DQ & ":" & DQ & CDate(props.Items()(i)) & DQ & ","
+            Else
+                MsgBox (props.Keys()(i) & " is expecting a " & dataType & " value but has this value instead: " & props.Items()(i))
+                optionStatus = optionStatus + props.Keys()(i) & " is expecting a " & dataType & " value but has this value instead: " & props.Items()(i) & vbNewLine
+            End If
+        Else 'other types not number, currency,datetime
+            If props.Items()(i) = "" Then
+                data = data & DQ & props.Keys()(i) & DQ & ":null,"
+            Else
+                data = data & DQ & props.Keys()(i) & DQ & ":" & DQ & props.Items()(i) & DQ & ","
+            End If
+            Debug.Print props.Keys()(i) & " "; dataType
+        End If
+    Next i
+    data = Left(data, Len(data) - 1)
+    data = data & "}"
+    GetData = data
+End Function
+
+Function CheckDataType(fieldName As String, lastRowNumber As String) As String
+    Dim dataType As String
+    Set myRange = Worksheets("MMF JSON Helper").Range("A2:B" & lastRowNumber)
+    On Error GoTo Message
+        CheckDataType = Application.WorksheetFunction.VLookup(fieldName, myRange, 2, False)
+Message:
+End Function
+
+Function GetOption(indicator As String, myRange As String, lastRow As Integer) As Scripting.Dictionary
+    Dim propsDict As Scripting.Dictionary
+    Set propsDict = New Scripting.Dictionary
+    Dim iterator As Integer
+    iterator = 0
+    
+    If indicator = "Bound" Then
+    
+        For Each r In Range(myRange & CStr(lastRow)) 'setting dynamic range based on input number value in JSON Helper Tab
+            If Not IsEmpty(r.Value) And r.Value <> "Senior Care View" And r.Value <> "" Then
+                propsDict.Add r.Value, r.Offset(0, 1)
+                'Debug.Print r.Value & " " & r.Offset(0, 1)
+            End If
+            iterator = iterator + 1
+            If iterator >= lastRow Then
+                Exit For
+            End If
+            'If r.Value = "END" Then
+                'Exit For
+            'End If
+        Next r
+    End If
+    
+    Set GetOption = propsDict
+End Function
