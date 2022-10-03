@@ -1,0 +1,178 @@
+Function CallAPI() As String
+Dim OVERALL_STATUS As String
+    'OVERALL_STATUS needs to reference O28 instead of O29
+    OVERALL_STATUS = Worksheets("ExportData").Range("ExportStatus").Value
+    Dim LAST_ROW_TO_READ As String
+    LAST_ROW_TO_READ = Worksheets("MMF JSON Helper").Range("E1").Value
+    
+    If OVERALL_STATUS = "OK" Then
+        Worksheets("Cards Data Validation").Activate
+        
+        Dim reqUrl As String
+        'DEV PROD
+        reqUrl = "https://prod-72.westus.logic.azure.com:443/workflows/9a66f6be4f0d46898327b1566661ccee/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=0oURJerLCJn93nzR1WqiP4yxldZDcU6cPp8izYZ2OiY"
+        Dim indicatorOption_1 As String
+        indicatorOption_1 = Worksheets("Risk Analysis").Range("L305").Value
+        Dim indicatorOption_2 As String
+        indicatorOption_2 = Worksheets("Risk Analysis").Range("AB305").Value
+        Dim indicatorOption_3 As String
+        indicatorOption_3 = Worksheets("Risk Analysis").Range("AR305").Value
+        
+        Dim DQ As String
+        DQ = """"
+        Dim NL As String
+        NL = vbNewLine
+        Dim VT As String
+        VT = vbTab
+        
+        Dim CURRENT_USER As String
+        CURRENT_USER = Application.UserName
+        
+        Dim VERSION As String
+        VERSION = Worksheets("Risk Analysis").Range("E7").Value
+        
+        Dim dt As Object, utc As Date
+        Set dt = CreateObject("WbemScripting.SWbemDateTime")
+        dt.SetVarDate Now
+        utc = dt.GetVarDate(False)
+        
+        Dim json As String
+        json = "{" & _
+            DQ & "updatedBy" & DQ & ":" & DQ & CURRENT_USER & DQ & "," & _
+            DQ & "updatedAt" & DQ & ":" & DQ & utc & DQ & "," & _
+            DQ & "updatedComment" & DQ & ":" & DQ & DQ & "," & _
+                DQ & "BRAT" & DQ & ":{" & _
+                DQ & "version" & DQ & ":" & DQ & VERSION & DQ & "," & _
+                DQ & "name" & DQ & ":" & DQ & "MMF" & DQ & _
+                "}," & _
+                DQ & "data" & DQ & ":[{"
+                
+        'Need to add Microsoft Scripting Runtime Reference
+        Dim propsDict1 As Scripting.Dictionary
+        'Set propsDict1 = New Dictionary
+        
+        Dim propsDict2 As Scripting.Dictionary
+        'Set propsDict2 = New Dictionary
+        
+        Dim propsDict3 As Scripting.Dictionary
+        'Set propsDict3 = New Dictionary
+        
+        Dim r As Range
+        Dim iterator As Integer
+        iterator = 0
+        
+        'START setting dictionaries to use for constructing the JSON data prop
+        Set propsDict1 = GetOption(CStr(indicatorOption_1), "B7:B", CInt(LAST_ROW_TO_READ))
+        ''Debug.Print indicator
+        Set propsDict2 = GetOption(CStr(indicatorOption_2), "E7:E", CInt(LAST_ROW_TO_READ))
+        ''Debug.Print indicator
+        Set propsDict3 = GetOption(CStr(indicatorOption_3), "H7:H", CInt(LAST_ROW_TO_READ))
+        'END setting dictionaries to use for constructing the JSON data prop
+        
+        'START creating data part of JSON payload
+        Dim data As String
+        data = ""
+        
+        'Option 1 Loop
+        Dim option1Status_ As String
+        Dim optionNumber_ As Integer
+        option1Status_ = ""
+        If propsDict1.Count > 0 Then
+            optionNumber = 1
+            data = data & GetData(propsDict1, LAST_ROW_TO_READ, optionNumber, option1Status_) & ",{"
+        End If
+        'Option 2 Loop
+        Dim option2Status_ As String
+        option2Status_ = ""
+        If propsDict2.Count > 0 Then
+            optionNumber = 2
+            data = data & GetData(propsDict2, LAST_ROW_TO_READ, optionNumber, option2Status_) & ",{"
+        End If
+        'Option 3 Loop
+        Dim option3Status_ As String
+        option3Status_ = ""
+        If propsDict3.Count > 0 Then
+            optionNumber = 3
+            data = data & GetData(propsDict3, LAST_ROW_TO_READ, optionNumber, option3Status_) & ",{"
+        End If
+        'END creating data part of JSON payload
+        
+        If option1Status_ <> "" Or option2Status_ <> "" Or option3Status_ <> "" Then
+            'Set the Status for Option 1, 2, and 3 in Export Data and Overall Status to Invalid payload, see details below
+            Worksheets("ExportData").Range("O29").Value = ""
+            Worksheets("ExportData").Range("O30").Value = option1Status_
+            Worksheets("ExportData").Range("O31").Value = option2Status_
+            Worksheets("ExportData").Range("O32").Value = option3Status_
+            Worksheets("ExportData").Activate
+            Exit Function
+        End If
+        
+        'Remove last ,{ from data then
+        'Add data for Option 1,2, and 3 to json
+        If data <> "" Then
+            data = Left(data, Len(data) - 2)
+            json = json & data
+        
+            'Close data and master json opening
+            json = json & "]}"
+            json = Replace(json, vbLf, "")
+            
+            'This will make the generated JSON visible if need to troubleshoot
+            Range("B" & CStr(CInt(LAST_ROW_TO_READ) + 2)).Value = json
+            ''Debug.Print json
+        
+            'API Call
+            'Need to add Microsoft XML v6.0
+            Dim req As New MSXML2.ServerXMLHTTP60
+            req.setTimeouts 0, 120000, 60000, 60000
+            
+            Dim RESPONSE As String
+            
+            req.Open "POST", reqUrl, False
+            req.setRequestHeader "Content-Type", "application/json"
+        
+            req.send json
+            
+        
+            RESPONSE = req.responseText
+            Dim JsonResponse As Object
+            Set JsonResponse = JsonConverter.ParseJson(RESPONSE)
+            
+            On Error GoTo APIResponse
+                Dim ix As Integer
+                ix = 1
+                Do While 1 <= 3 'This loop finds which items were sent to the flow and sets the proper value to the Option # Status rows
+                    If JsonResponse(ix)("Option Number") = 1 Then
+                        option1Status_ = option1Status_ & JsonResponse(ix)("Status Value") 'append to option 1 status
+                    ElseIf JsonResponse(ix)("Option Number") = 2 Then
+                        option2Status_ = option2Status_ & JsonResponse(ix)("Status Value") 'append to option 2 status
+                    Else
+                        option3Status_ = option3Status_ & JsonResponse(ix)("Status Value") 'append to option 3 status
+                    End If
+                    ix = ix + 1
+                Loop
+APIResponse:
+                If req.Status <> 200 Then
+                    'MsgBox req.Status & " - " & req.StatusText
+                    'Worksheets("ExportData").Range("O29").Value = req.Status & " - " & req.StatusText
+                    Worksheets("ExportData").Range("O29").Value = ""
+                    'Exit Function
+                Else
+                    '****************Uncomment when deploy to prod*************************
+                    'Worksheets("ExportData").Range("P29").Value = "Sent"
+                    Worksheets("ExportData").Range("O9").Value = ""
+                End If
+                
+                Worksheets("ExportData").Range("O30").Value = option1Status_
+                Worksheets("ExportData").Range("O31").Value = option2Status_
+                Worksheets("ExportData").Range("O32").Value = option3Status_
+        End If
+        Worksheets("ExportData").Activate
+    Else
+                    '*************Uncomment when deploy to prod****************************
+        'MsgBox ("Data did not send as Overall Status is not OK")
+        'Worksheets("ExportData").Range("O29").Value = "Data did not send. Overall Status is not OK"
+        Worksheets("ExportData").Range("O29").Value = ""
+    End If
+    CallAPI = "API Called"
+End Function
