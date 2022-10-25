@@ -72,6 +72,8 @@
     Range("CA1").Select
     ActiveCell.FormulaR1C1 = "Combined Scen 1 Trended nonzero count in layer"
     
+    Sheets("Sheet1").Select
+    
     ActiveWorkbook.SaveAs Filename:= _
         "https://ars365.sharepoint.com/sites/spit/admin/dev/Shared%20Documents/BRAT%20HPL%20v2.4%20-%20WIP%20-%20Dev.csv" _
         , FileFormat:=xlCSV, CreateBackup:=False
