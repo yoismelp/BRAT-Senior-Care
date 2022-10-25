@@ -3,6 +3,8 @@ Sub Button1_Click()
     Dim filePat As String
     filePath = Application.ActiveWorkbook.FullName
     
+    'MsgBox filePath
+    
     Range("LossTable[#All]").Select
     Selection.Copy
     Sheets.Add After:=ActiveSheet
@@ -89,8 +91,10 @@ Sub Button1_Click()
     Sheets("BRAT HPL v2.4 - WIP - Dev").Select
     ActiveWindow.SelectedSheets.Delete
     Sheets("Loss Listing").Select
+    
+    ActiveWorkbook.SaveAs Filename:=filePath, FileFormat:=50
     Application.DisplayAlerts = True
     
-    ActiveWorkbook.SaveAs Filename:=filePath
         
 End Sub
+
