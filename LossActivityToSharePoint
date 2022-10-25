@@ -75,3 +75,10 @@
     ActiveWorkbook.SaveAs Filename:= _
         "https://ars365.sharepoint.com/sites/spit/admin/dev/Shared%20Documents/BRAT%20HPL%20v2.4%20-%20WIP%20-%20Dev.csv" _
         , FileFormat:=xlCSV, CreateBackup:=False
+        
+   'DELETE THE CREATED TAB
+    Application.DisplayAlerts = False
+    Sheets("BRAT HPL v2.4 - WIP - Dev").Select
+    ActiveWindow.SelectedSheets.Delete
+    Sheets("Loss Listing").Select
+    Application.DisplayAlerts = True
