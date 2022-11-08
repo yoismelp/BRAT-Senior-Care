@@ -1,0 +1,25 @@
+Sub Button1_Click()
+    Dim CURRENT_USER As String
+        CURRENT_USER = Application.UserName
+    Dim TIMESTAMP As String
+        TIMESTAMP = Format(Now(), "yyyyMMddhhmmss")
+    Sheets("Loss Listing").Select
+    Dim filePat As String
+    filePath = Application.ActiveWorkbook.FullName
+
+    Range("LossTable[#All]").Select
+    
+    Selection.Copy
+    Workbooks.Add
+    ActiveSheet.Paste
+    Application.CutCopyMode = False
+
+    Application.DisplayAlerts = False
+    ActiveWorkbook.SaveAs Filename:= _
+        "https://bowheadsi.sharepoint.com/sites/DevDataVault/Shared%20Documents/Policy%20Processing/BRAT%20-%20Losses%20Export/" + TIMESTAMP + "_BRATForLosses_" + CURRENT_USER + ".xlsx" _
+        , FileFormat:=51
+    ActiveWindow.Close
+    
+    Application.DisplayAlerts = True
+        
+End Sub
