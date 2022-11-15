@@ -1,0 +1,17 @@
+Range("Table1[[#Headers],[t1]]").Select
+    Selection.End(xlToRight).Select
+    Range("E2").Select
+    ActiveCell.FormulaR1C1 = Application.UserName
+    Range("E2").Select
+    Selection.Copy
+    Range(Selection, Selection.End(xlDown)).Select
+    ActiveSheet.Paste
+    Range("F2").Select
+    Application.CutCopyMode = False
+    ActiveCell.FormulaR1C1 = Format(Now, "yyyy-MM-dd hh:mm AM/PM")
+    Range("F2").Select
+    Selection.Copy
+    Range(Selection, Selection.End(xlDown)).Select
+    ActiveSheet.Paste
+    ActiveSheet.Paste
+    Application.CutCopyMode = False
