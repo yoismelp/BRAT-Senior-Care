@@ -7,13 +7,29 @@ Sub Button1_Click()
     Dim filePat As String
     filePath = Application.ActiveWorkbook.FullName
     
-    'Adding new columns
+    
     Range("LossTable[[#Headers],['#]]").Select
+    ActiveCell.FormulaR1C1 = "BRATRowNumber"
+    
+    'START Fromat dates
+    Range("LossTable[[#All],[Evaluation Date]]").Select
+    Selection.NumberFormat = "m/d/yyyy"
+    Range("LossTable[[#All],[Report Date]]").Select
+    Selection.NumberFormat = "m/d/yyyy"
+    Range("LossTable[[#All],[Loss or Accident Date]]").Select
+    Selection.NumberFormat = "m/d/yyyy"
+    Range("LossTable[[#All],[Closed Date]]").Select
+    Selection.NumberFormat = "m/d/yyyy"
+    Range("LossTable[[#All],[Experience Date]]").Select
+    Selection.NumberFormat = "m/d/yyyy"
+    'END Fromat dates
+    
+    'START Adding new columns
     Selection.End(xlToRight).Offset(0, 1).Select
     Application.CutCopyMode = False
     ActiveCell.FormulaR1C1 = "EntryBy"
     ActiveCell.Offset(0, 1).Select
-    ActiveCell.FormulaR1C1 = "EntryTime"
+    ActiveCell.FormulaR1C1 = "EntryDate"
     ActiveCell.Offset(1, -1).Select
     ActiveCell.FormulaR1C1 = Application.UserName
     ActiveCell.Select
@@ -22,13 +38,14 @@ Sub Button1_Click()
     ActiveSheet.Paste
     ActiveCell.Offset(0, 1).Select
     Application.CutCopyMode = False
-    ActiveCell.FormulaR1C1 = Format(Now, "yyyy-MM-dd hh:mm AM/PM")
+    ActiveCell.FormulaR1C1 = Format(Now, "YYYYMMDD hh:mm:ss  AM/PM")
     ActiveCell.Select
     Selection.Copy
     Range(Selection, Selection.End(xlDown)).Select
     ActiveSheet.Paste
-    Selection.NumberFormat = "yyyy-mm-dd hh:mm:ss AM/PM"
-
+    Selection.NumberFormat = "YYYYMMDD hh:mm:ss AM/PM"
+    'END Adding new columns
+    
     Range("LossTable[#All]").Select
     
     Selection.Copy
@@ -43,13 +60,17 @@ Sub Button1_Click()
     
     ActiveWindow.Close
     
+    'Remove EntryBy
     Range("LossTable[[#Headers],['EntryBy]]").Select
     Range(Selection, Selection.End(xlDown)).Select
     Selection.Delete Shift:=xlToLeft
-    
-    Range("LossTable[[#Headers],['EntryTime]]").Select
+    'Remove EntryTime
+    Range("LossTable[[#Headers],['EntryDate]]").Select
     Range(Selection, Selection.End(xlDown)).Select
     Selection.Delete Shift:=xlToLeft
+    
+    Range("LossTable[[#Headers],['BRATRowNumber]]").Select
+    ActiveCell.FormulaR1C1 = "#"
     
     Application.DisplayAlerts = True
         
