@@ -3,9 +3,20 @@ Sub Button1_Click()
         CURRENT_USER = Application.UserName
     Dim TIMESTAMP As String
         TIMESTAMP = Format(Now(), "yyyyMMddhhmmss")
-    Sheets("Loss Listing").Select
     Dim filePat As String
-    filePath = Application.ActiveWorkbook.FullName
+        filePath = Application.ActiveWorkbook.FullName
+    Sheets("Loss Listing").Select
+    
+    
+    'START Add row count
+    Range("LossTable[[#Headers],['#]]").Select
+    ActiveCell.Offset(1, 0).Select
+    Selection.ListObject.ListRows.Add (1)
+    ActiveCell.FormulaR1C1 = "0"
+    ActiveCell.Offset(0, 1).Select
+    ActiveCell.FormulaR1C1 = "=ROWS(['#])-1"
+    'END row count
+    
     
     
     Range("LossTable[[#Headers],['#]]").Select
@@ -71,6 +82,10 @@ Sub Button1_Click()
     
     Range("LossTable[[#Headers],['BRATRowNumber]]").Select
     ActiveCell.FormulaR1C1 = "#"
+    
+    'DELETE ROW COUNT
+    ActiveCell.Offset(1, 0).Select
+    Selection.ListObject.ListRows(1).Delete
     
     Application.DisplayAlerts = True
         
