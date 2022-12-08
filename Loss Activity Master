@@ -10,15 +10,198 @@ Sub Button1_Click()
         filePath = Application.ActiveWorkbook.FullName
     Sheets("Loss Listing").Select
     
-    'LocationTabl
-    Export_DataHandler ENTRY_DATE, CURRENT_USER, "LocationTable", TimeStamp
+    'AccountInfoTable
+    AccountInfoTableExportHandler ENTRY_DATE, CURRENT_USER, "AccountInfo", TimeStamp
+    
+    'ExposureTable
+    ExposureTableExportHandler ENTRY_DATE, CURRENT_USER, "ExposureTable", TimeStamp
+    
+    'TowerTable
+    DataExportHandler ENTRY_DATE, CURRENT_USER, "TowerTable", TimeStamp
+    
+    'LocationTable
+    DataExportHandler ENTRY_DATE, CURRENT_USER, "LocationTable", TimeStamp
     
     'LossListingTable
     LossListingTableHandler
         
 End Sub
 
-Sub Export_DataHandler(EntryDate, EntryUser, TableName, TimeStamp)
+Sub AccountInfoTableExportHandler(EntryDate, EntryUser, TableName, TimeStamp)
+    Sheets("Export Data").Visible = True
+    Sheets("Export Data").Select
+    Range(TableName).Select
+    'START Add EntryDate and EntryBy
+    Selection.End(xlToRight).Offset(-1, 1).Select
+    
+    ActiveCell.EntireColumn.Select
+    ActiveCell.Activate
+
+    Selection.Insert Shift:=xlToRight
+    Selection.Insert Shift:=xlToRight
+    Selection.Insert Shift:=xlToRight
+    
+    Range(TableName).Select
+    Selection.End(xlToRight).Offset(-1, 1).Select
+    
+    Application.CutCopyMode = False
+    ActiveCell.FormulaR1C1 = "EntryBy"
+    
+    ActiveCell.Offset(0, 1).Select
+    ActiveCell.FormulaR1C1 = "EntryDate"
+    
+    ActiveCell.Offset(0, 1).Select
+    ActiveCell.FormulaR1C1 = "VariableValueExport"
+    
+    'Values
+    ActiveCell.Offset(1, -2).Select
+    ActiveCell.FormulaR1C1 = EntryUser
+    ActiveCell.Select
+    Selection.Copy
+    Range(Selection, Selection.End(xlDown)).Select
+    ActiveSheet.Paste
+    
+    ActiveCell.Offset(0, 1).Select
+    Application.CutCopyMode = False
+    ActiveCell.FormulaR1C1 = EntryDate
+    ActiveCell.Select
+    Selection.Copy
+    Range(Selection, Selection.End(xlDown)).Select
+    ActiveSheet.Paste
+    Selection.NumberFormat = "YYYYMMDD hh:mm:ss AM/PM"
+    
+    ActiveCell.Offset(0, 1).Select
+    ActiveCell.FormulaR1C1 = "=TEXT([@[Variable Value]], ""yyyyMMdd"")"
+    
+    'END Add EntryDate and EntryBy
+    
+    'START Save file
+    Range(TableName & "[#All]").Select
+    Selection.Copy
+    Workbooks.Add
+    
+    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+        :=False, Transpose:=False
+    Application.CutCopyMode = False
+    ActiveSheet.ListObjects.Add(xlSrcRange, Selection.CurrentRegion, , xlYes).Name = _
+        "Table1"
+
+    Application.DisplayAlerts = False
+    
+    ActiveWorkbook.SaveAs Filename:= _
+        "https://bowheadsi.sharepoint.com/sites/DevDataVault/Shared%20Documents/Policy%20Processing/BRAT%20-%20Losses%20Export/" + TimeStamp + "_BRAT" + TableName + EntryUser + ".xlsx" _
+        , FileFormat:=51
+    
+    ActiveWindow.Close
+    
+    'Remove EntryBy
+    Range(TableName & "[[#Headers],['EntryBy]]").Select
+    ActiveCell.EntireColumn.Select
+    Selection.Delete Shift:=xlToLeft
+    'Remove EntryTime
+    Range(TableName & "[[#Headers],['EntryDate]]").Select
+    ActiveCell.EntireColumn.Select
+    Selection.Delete Shift:=xlToLeft
+    'Remove VariableValueExport
+    Range(TableName & "[[#Headers],['VariableValueExport]]").Select
+    ActiveCell.EntireColumn.Select
+    Selection.Delete Shift:=xlToLeft
+    'Hide Tab
+    Sheets("Export Data").Visible = False
+    
+    'END Save file
+    Sheets("Loss Listing").Select
+    Application.DisplayAlerts = True
+End Sub
+
+Sub ExposureTableExportHandler(EntryDate, EntryUser, TableName, TimeStamp)
+    Sheets("Export Data").Visible = True
+    Sheets("Export Data").Select
+    Range(TableName).Select
+    'START Add EntryDate and EntryBy
+    Selection.End(xlToRight).Offset(-1, 1).Select
+    
+    ActiveCell.EntireColumn.Select
+    ActiveCell.Activate
+
+    Selection.Insert Shift:=xlToRight
+    Selection.Insert Shift:=xlToRight
+    Selection.Insert Shift:=xlToRight
+    
+    Range(TableName).Select
+    Selection.End(xlToRight).Offset(-1, 1).Select
+    
+    Application.CutCopyMode = False
+    ActiveCell.FormulaR1C1 = "EntryBy"
+    
+    ActiveCell.Offset(0, 1).Select
+    ActiveCell.FormulaR1C1 = "EntryDate"
+    
+    ActiveCell.Offset(0, 1).Select
+    ActiveCell.FormulaR1C1 = "StartDateExport"
+    
+    'Values
+    ActiveCell.Offset(1, -2).Select
+    ActiveCell.FormulaR1C1 = EntryUser
+    ActiveCell.Select
+    Selection.Copy
+    Range(Selection, Selection.End(xlDown)).Select
+    ActiveSheet.Paste
+    
+    ActiveCell.Offset(0, 1).Select
+    Application.CutCopyMode = False
+    ActiveCell.FormulaR1C1 = EntryDate
+    ActiveCell.Select
+    Selection.Copy
+    Range(Selection, Selection.End(xlDown)).Select
+    ActiveSheet.Paste
+    Selection.NumberFormat = "YYYYMMDD hh:mm:ss AM/PM"
+    
+    ActiveCell.Offset(0, 1).Select
+    ActiveCell.FormulaR1C1 = "=TEXT([@[Start Date]], ""yyyyMMdd"")"
+    
+    'END Add EntryDate and EntryBy
+    
+    'START Save file
+    Range(TableName & "[#All]").Select
+    Selection.Copy
+    Workbooks.Add
+    
+    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+        :=False, Transpose:=False
+    Application.CutCopyMode = False
+    ActiveSheet.ListObjects.Add(xlSrcRange, Selection.CurrentRegion, , xlYes).Name = _
+        "Table1"
+
+    Application.DisplayAlerts = False
+    
+    ActiveWorkbook.SaveAs Filename:= _
+        "https://bowheadsi.sharepoint.com/sites/DevDataVault/Shared%20Documents/Policy%20Processing/BRAT%20-%20Losses%20Export/" + TimeStamp + "_BRAT" + TableName + EntryUser + ".xlsx" _
+        , FileFormat:=51
+    
+    ActiveWindow.Close
+    
+    'Remove EntryBy
+    Range(TableName & "[[#Headers],['EntryBy]]").Select
+    ActiveCell.EntireColumn.Select
+    Selection.Delete Shift:=xlToLeft
+    'Remove EntryTime
+    Range(TableName & "[[#Headers],['EntryDate]]").Select
+    ActiveCell.EntireColumn.Select
+    Selection.Delete Shift:=xlToLeft
+    'Remove Start Date Export
+    Range(TableName & "[[#Headers],['StartDateExport]]").Select
+    ActiveCell.EntireColumn.Select
+    Selection.Delete Shift:=xlToLeft
+    'Hide Tab
+    Sheets("Export Data").Visible = False
+    
+    'END Save file
+    Sheets("Loss Listing").Select
+    Application.DisplayAlerts = True
+End Sub
+
+Sub DataExportHandler(EntryDate, EntryUser, TableName, TimeStamp)
     Sheets("Export Data").Visible = True
     Sheets("Export Data").Select
     Range(TableName).Select
@@ -33,8 +216,6 @@ Sub Export_DataHandler(EntryDate, EntryUser, TableName, TimeStamp)
     
     Range(TableName).Select
     Selection.End(xlToRight).Offset(-1, 1).Select
-    
-    
     
     Application.CutCopyMode = False
     ActiveCell.FormulaR1C1 = "EntryBy"
@@ -75,7 +256,7 @@ Sub Export_DataHandler(EntryDate, EntryUser, TableName, TimeStamp)
     Application.DisplayAlerts = False
     
     ActiveWorkbook.SaveAs Filename:= _
-        "https://bowheadsi.sharepoint.com/sites/DevDataVault/Shared%20Documents/Policy%20Processing/BRAT%20-%20Losses%20Export/" + TimeStamp + "_BRATLocations_" + EntryUser + ".xlsx" _
+        "https://bowheadsi.sharepoint.com/sites/DevDataVault/Shared%20Documents/Policy%20Processing/BRAT%20-%20Losses%20Export/" + TimeStamp + "_BRAT" + TableName + EntryUser + ".xlsx" _
         , FileFormat:=51
     
     ActiveWindow.Close
