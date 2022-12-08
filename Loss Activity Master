@@ -1,12 +1,109 @@
 Sub Button1_Click()
+
     Dim CURRENT_USER As String
         CURRENT_USER = Application.UserName
-    Dim TIMESTAMP As String
-        TIMESTAMP = Format(Now(), "yyyyMMddhhmmss")
+    Dim TimeStamp As String
+        TimeStamp = Format(Now(), "yyyyMMddhhmmss")
+    Dim ENTRY_DATE As String
+        ENTRY_DATE = Format(Now, "YYYYMMDD hh:mm:ss  AM/PM")
     Dim filePat As String
         filePath = Application.ActiveWorkbook.FullName
     Sheets("Loss Listing").Select
     
+    'LocationTabl
+    Export_DataHandler ENTRY_DATE, CURRENT_USER, "LocationTable", TimeStamp
+    
+    'LossListingTable
+    LossListingTableHandler
+        
+End Sub
+
+Sub Export_DataHandler(EntryDate, EntryUser, TableName, TimeStamp)
+    Sheets("Export Data").Visible = True
+    Sheets("Export Data").Select
+    Range(TableName).Select
+    'START Add EntryDate and EntryBy
+    Selection.End(xlToRight).Offset(-1, 1).Select
+    
+    ActiveCell.EntireColumn.Select
+    ActiveCell.Activate
+
+    Selection.Insert Shift:=xlToRight
+    Selection.Insert Shift:=xlToRight
+    
+    Range(TableName).Select
+    Selection.End(xlToRight).Offset(-1, 1).Select
+    
+    
+    
+    Application.CutCopyMode = False
+    ActiveCell.FormulaR1C1 = "EntryBy"
+    
+    ActiveCell.Offset(0, 1).Select
+    ActiveCell.FormulaR1C1 = "EntryDate"
+    
+    'Values
+    ActiveCell.Offset(1, -1).Select
+    ActiveCell.FormulaR1C1 = EntryUser
+    ActiveCell.Select
+    Selection.Copy
+    Range(Selection, Selection.End(xlDown)).Select
+    ActiveSheet.Paste
+    
+    ActiveCell.Offset(0, 1).Select
+    Application.CutCopyMode = False
+    ActiveCell.FormulaR1C1 = EntryDate
+    ActiveCell.Select
+    Selection.Copy
+    Range(Selection, Selection.End(xlDown)).Select
+    ActiveSheet.Paste
+    Selection.NumberFormat = "YYYYMMDD hh:mm:ss AM/PM"
+    
+    'END Add EntryDate and EntryBy
+    
+    'START Save file
+    Range(TableName & "[#All]").Select
+    Selection.Copy
+    Workbooks.Add
+    
+    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+        :=False, Transpose:=False
+    Application.CutCopyMode = False
+    ActiveSheet.ListObjects.Add(xlSrcRange, Selection.CurrentRegion, , xlYes).Name = _
+        "Table1"
+
+    Application.DisplayAlerts = False
+    
+    ActiveWorkbook.SaveAs Filename:= _
+        "https://bowheadsi.sharepoint.com/sites/DevDataVault/Shared%20Documents/Policy%20Processing/BRAT%20-%20Losses%20Export/" + TimeStamp + "_BRATLocations_" + EntryUser + ".xlsx" _
+        , FileFormat:=51
+    
+    ActiveWindow.Close
+    
+    'Remove EntryBy
+    Range(TableName & "[[#Headers],['EntryBy]]").Select
+    ActiveCell.EntireColumn.Select
+    Selection.Delete Shift:=xlToLeft
+    'Remove EntryTime
+    Range(TableName & "[[#Headers],['EntryDate]]").Select
+    ActiveCell.EntireColumn.Select
+    Selection.Delete Shift:=xlToLeft
+    'Hide Tab
+    Sheets("Export Data").Visible = False
+    
+    'END Save file
+    Sheets("Loss Listing").Select
+    Application.DisplayAlerts = True
+End Sub
+
+Sub LossListingTableHandler()
+    Dim CURRENT_USER As String
+        CURRENT_USER = Application.UserName
+    Dim TimeStamp As String
+        TimeStamp = Format(Now(), "yyyyMMddhhmmss")
+    Dim filePat As String
+        filePath = Application.ActiveWorkbook.FullName
+    Sheets("Loss Listing").Select
     
     'START Add row count
     Range("LossTable[[#Headers],['#]]").Select
@@ -102,7 +199,7 @@ Sub Button1_Click()
 
     Application.DisplayAlerts = False
     ActiveWorkbook.SaveAs Filename:= _
-        "https://bowheadsi.sharepoint.com/sites/DevDataVault/Shared%20Documents/Policy%20Processing/BRAT%20-%20Losses%20Export/" + TIMESTAMP + "_BRATForLosses_" + CURRENT_USER + ".xlsx" _
+        "https://bowheadsi.sharepoint.com/sites/DevDataVault/Shared%20Documents/Policy%20Processing/BRAT%20-%20Losses%20Export/" + TimeStamp + "_BRATForLosses_" + CURRENT_USER + ".xlsx" _
         , FileFormat:=51
     
     ActiveWindow.Close
@@ -157,5 +254,4 @@ Sub Button1_Click()
     Selection.ListObject.ListRows(1).Delete
     
     Application.DisplayAlerts = True
-        
 End Sub
