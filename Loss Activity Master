@@ -1,5 +1,6 @@
 Sub Button1_Click()
-
+    Application.Calculation = xlCalculationManual
+    
     Dim CURRENT_USER As String
         CURRENT_USER = Application.UserName
     Dim TimeStamp As String
@@ -11,7 +12,7 @@ Sub Button1_Click()
     Sheets("Loss Listing").Select
     
     'LossListingTable
-    LossListingTableHandler
+    'LossListingTableHandler
     
     'ExposureTable
     'ExposureTableExportHandler ENTRY_DATE, CURRENT_USER, "ExposureTable", TimeStamp
@@ -23,8 +24,9 @@ Sub Button1_Click()
     'DataExportHandler ENTRY_DATE, CURRENT_USER, "TowerTable", TimeStamp
     
     'LocationTable
-    'DataExportHandler ENTRY_DATE, CURRENT_USER, "LocationTable", TimeStamp
-        
+    DataExportHandler ENTRY_DATE, CURRENT_USER, "LocationTable", TimeStamp
+    
+    Application.Calculation = xlCalculationAutomatic
 End Sub
 
 Sub AccountInfoTableExportHandler(EntryDate, EntryUser, TableName, TimeStamp)
@@ -71,7 +73,7 @@ Sub AccountInfoTableExportHandler(EntryDate, EntryUser, TableName, TimeStamp)
     Selection.NumberFormat = "YYYYMMDD hh:mm:ss AM/PM"
     
     ActiveCell.Offset(0, 1).Select
-    ActiveCell.FormulaR1C1 = "=TEXT([@[Variable Value]], ""yyyyMMdd"")"
+    ActiveCell.FormulaR1C1 = "=IF(CELL(""format"", [@[Variable Value]])=""D4"", TEXT([@[Variable Value]], ""yyyy-MM-dd""), [@[Variable Value]])"
     
     'END Add EntryDate and EntryBy
     
@@ -459,5 +461,5 @@ Sub LossListingTableHandler()
     
     Application.DisplayAlerts = True
     Range("C:M").EntireColumn.Hidden = True
-    Application.Calculation = xlCalculationAutomatic
+    
 End Sub
