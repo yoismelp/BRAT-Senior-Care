@@ -1,5 +1,6 @@
 Sub Button1_Click()
     Application.Calculation = xlCalculationManual
+    Sheets("Export Data").Visible = True
     
     Dim CURRENT_USER As String
         CURRENT_USER = Application.UserName
@@ -10,9 +11,6 @@ Sub Button1_Click()
     Dim filePat As String
         filePath = Application.ActiveWorkbook.FullName
     Sheets("Loss Listing").Select
-    
-    'LossListingTable
-    LossListingTableHandler
     
     'ExposureTable
     ExposureTableExportHandler ENTRY_DATE, CURRENT_USER, "ExposureTable", TimeStamp
@@ -26,11 +24,15 @@ Sub Button1_Click()
     'LocationTable
     DataExportHandler ENTRY_DATE, CURRENT_USER, "LocationTable", TimeStamp
     
+    'LossListingTable
+    LossListingTableHandler
+    
+    Sheets("Export Data").Visible = False
     Application.Calculation = xlCalculationAutomatic
 End Sub
 
 Sub AccountInfoTableExportHandler(EntryDate, EntryUser, TableName, TimeStamp)
-    Sheets("Export Data").Visible = True
+    
     Sheets("Export Data").Select
     Range(TableName).Select
     'START Add EntryDate and EntryBy
@@ -108,8 +110,6 @@ Sub AccountInfoTableExportHandler(EntryDate, EntryUser, TableName, TimeStamp)
     Range(TableName & "[[#Headers],['VariableValueExport]]").Select
     ActiveCell.EntireColumn.Select
     Selection.Delete Shift:=xlToLeft
-    'Hide Tab
-    Sheets("Export Data").Visible = False
     
     'END Save file
     Sheets("Loss Listing").Select
@@ -117,7 +117,6 @@ Sub AccountInfoTableExportHandler(EntryDate, EntryUser, TableName, TimeStamp)
 End Sub
 
 Sub ExposureTableExportHandler(EntryDate, EntryUser, TableName, TimeStamp)
-    Sheets("Export Data").Visible = True
     Sheets("Export Data").Select
     Range(TableName).Select
     'START Add EntryDate and EntryBy
@@ -195,8 +194,6 @@ Sub ExposureTableExportHandler(EntryDate, EntryUser, TableName, TimeStamp)
     Range(TableName & "[[#Headers],['StartDateExport]]").Select
     ActiveCell.EntireColumn.Select
     Selection.Delete Shift:=xlToLeft
-    'Hide Tab
-    Sheets("Export Data").Visible = False
     
     'END Save file
     Sheets("Loss Listing").Select
@@ -204,7 +201,6 @@ Sub ExposureTableExportHandler(EntryDate, EntryUser, TableName, TimeStamp)
 End Sub
 
 Sub DataExportHandler(EntryDate, EntryUser, TableName, TimeStamp)
-    Sheets("Export Data").Visible = True
     Sheets("Export Data").Select
     Range(TableName).Select
     'START Add EntryDate and EntryBy
@@ -271,8 +267,6 @@ Sub DataExportHandler(EntryDate, EntryUser, TableName, TimeStamp)
     Range(TableName & "[[#Headers],['EntryDate]]").Select
     ActiveCell.EntireColumn.Select
     Selection.Delete Shift:=xlToLeft
-    'Hide Tab
-    Sheets("Export Data").Visible = False
     
     'END Save file
     Sheets("Loss Listing").Select
