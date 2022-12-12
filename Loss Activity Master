@@ -12,16 +12,16 @@ Sub Button1_Click()
     Sheets("Loss Listing").Select
     
     'LossListingTable
-    'LossListingTableHandler
+    LossListingTableHandler
     
     'ExposureTable
-    'ExposureTableExportHandler ENTRY_DATE, CURRENT_USER, "ExposureTable", TimeStamp
+    ExposureTableExportHandler ENTRY_DATE, CURRENT_USER, "ExposureTable", TimeStamp
     
     'AccountInfoTable
-    'AccountInfoTableExportHandler ENTRY_DATE, CURRENT_USER, "AccountInfo", TimeStamp
+    AccountInfoTableExportHandler ENTRY_DATE, CURRENT_USER, "AccountInfo", TimeStamp
            
     'TowerTable
-    'DataExportHandler ENTRY_DATE, CURRENT_USER, "TowerTable", TimeStamp
+    DataExportHandler ENTRY_DATE, CURRENT_USER, "TowerTable", TimeStamp
     
     'LocationTable
     DataExportHandler ENTRY_DATE, CURRENT_USER, "LocationTable", TimeStamp
