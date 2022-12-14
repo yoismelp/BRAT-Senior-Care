@@ -19,16 +19,16 @@ Sub Button1_Click()
     Sheets("Loss Listing").Select
     
     'ExposureTable
-    ExposureTableExportHandler ENTRY_DATE, CURRENT_USER, "ExposureTable", TimeStamp, sharePointURL
+    'ExposureTableExportHandler ENTRY_DATE, CURRENT_USER, "ExposureTable", TimeStamp, sharePointURL
     
     'AccountInfoTable
-    AccountInfoTableExportHandler ENTRY_DATE, CURRENT_USER, "AccountInfo", TimeStamp, sharePointURL
+    'AccountInfoTableExportHandler ENTRY_DATE, CURRENT_USER, "AccountInfo", TimeStamp, sharePointURL
            
     'TowerTable
-    DataExportHandler ENTRY_DATE, CURRENT_USER, "TowerTable", TimeStamp, sharePointURL
+    'DataExportHandler ENTRY_DATE, CURRENT_USER, "TowerTable", TimeStamp, sharePointURL
     
     'LocationTable
-    DataExportHandler ENTRY_DATE, CURRENT_USER, "LocationTable", TimeStamp, sharePointURL
+    'DataExportHandler ENTRY_DATE, CURRENT_USER, "LocationTable", TimeStamp, sharePointURL
     
     'LossListingTable
     LossListingTableHandler sharePointURL
@@ -301,8 +301,8 @@ Sub LossListingTableHandler(sharePointURL)
     Range("LossTable[[#Headers],['Coverage]]").Select
     ActiveCell.Offset(1, 0).Select
     ActiveCell.FormulaR1C1 = "PL"
-    ActiveCell.Offset(0, 1).Select
-    
+    Range("LossTable[[#Headers],['UploadID]]").Select
+    ActiveCell.Offset(1, 0).Select
     'To get number of rows populated using Coverage column as reference
     Dim myColumn As ListColumn
     Set myColumn = Sheets("Loss Listing").ListObjects("LossTable").ListColumns("Coverage")
