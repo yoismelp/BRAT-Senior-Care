@@ -10,34 +10,43 @@ Sub Button1_Click()
         ENTRY_DATE = Format(Now, "YYYYMMDD hh:mm:ss  AM/PM")
     Dim filePat As String
         filePath = Application.ActiveWorkbook.FullName
+    
+    Sheets("Risk Analysis").Select
+    
+    Dim BRAT_NAME As String
+        BRAT_NAME = Range("B5").Value
+    Dim VERSION As String
+        VERSION = Range("E7").Value
+        
+    Sheets("Loss Listing").Select
+    
     Dim sharePointURL As String
     'DEV
         'sharePointURL = "https://bowheadsi.sharepoint.com/sites/DevDataVault/Shared%20Documents/Policy%20Processing/BRAT%20-%20Losses%20Export/"
     'PROD
          sharePointURL = "https://bowheadsi.sharepoint.com/sites/DataVault/Shared%20Documents/Policy%20Processing/BRAT%20-%20Losses%20Export/"
     
-    Sheets("Loss Listing").Select
     
     'ExposureTable
-    'ExposureTableExportHandler ENTRY_DATE, CURRENT_USER, "ExposureTable", TimeStamp, sharePointURL
+    ExposureTableExportHandler ENTRY_DATE, CURRENT_USER, "ExposureTable", TimeStamp, sharePointURL, BRAT_NAME, VERSION
     
     'AccountInfoTable
-    'AccountInfoTableExportHandler ENTRY_DATE, CURRENT_USER, "AccountInfo", TimeStamp, sharePointURL
+    AccountInfoTableExportHandler ENTRY_DATE, CURRENT_USER, "AccountInfo", TimeStamp, sharePointURL, BRAT_NAME, VERSION
            
     'TowerTable
-    'DataExportHandler ENTRY_DATE, CURRENT_USER, "TowerTable", TimeStamp, sharePointURL
+    DataExportHandler ENTRY_DATE, CURRENT_USER, "TowerTable", TimeStamp, sharePointURL, BRAT_NAME, VERSION
     
     'LocationTable
-    'DataExportHandler ENTRY_DATE, CURRENT_USER, "LocationTable", TimeStamp, sharePointURL
+    DataExportHandler ENTRY_DATE, CURRENT_USER, "LocationTable", TimeStamp, sharePointURL, BRAT_NAME, VERSION
     
     'LossListingTable
-    LossListingTableHandler sharePointURL
+    LossListingTableHandler sharePointURL, BRAT_NAME, VERSION
     
     Sheets("Export Data").Visible = False
     Application.Calculation = xlCalculationAutomatic
 End Sub
 
-Sub AccountInfoTableExportHandler(EntryDate, EntryUser, TableName, TimeStamp, sharePointURL)
+Sub AccountInfoTableExportHandler(EntryDate, EntryUser, TableName, TimeStamp, sharePointURL, BRAT_NAME, VERSION)
     
     Sheets("Export Data").Select
     Range(TableName).Select
@@ -99,7 +108,7 @@ Sub AccountInfoTableExportHandler(EntryDate, EntryUser, TableName, TimeStamp, sh
     Application.DisplayAlerts = False
     
     ActiveWorkbook.SaveAs Filename:= _
-        sharePointURL + TimeStamp + "_BRAT" + TableName + "_" + EntryUser + ".xlsx" _
+        sharePointURL + TimeStamp + "_BRAT" + TableName + "_" + EntryUser + "_" + BRAT_NAME + "_" + VERSION + ".xlsx" _
         , FileFormat:=51
     
     ActiveWindow.Close
@@ -122,7 +131,7 @@ Sub AccountInfoTableExportHandler(EntryDate, EntryUser, TableName, TimeStamp, sh
     Application.DisplayAlerts = True
 End Sub
 
-Sub ExposureTableExportHandler(EntryDate, EntryUser, TableName, TimeStamp, sharePointURL)
+Sub ExposureTableExportHandler(EntryDate, EntryUser, TableName, TimeStamp, sharePointURL, BRAT_NAME, VERSION)
     Sheets("Export Data").Select
     Range(TableName).Select
     'START Add EntryDate and EntryBy
@@ -183,7 +192,7 @@ Sub ExposureTableExportHandler(EntryDate, EntryUser, TableName, TimeStamp, share
     Application.DisplayAlerts = False
     
     ActiveWorkbook.SaveAs Filename:= _
-        sharePointURL + TimeStamp + "_BRAT" + TableName + "_" + EntryUser + ".xlsx" _
+        sharePointURL + TimeStamp + "_BRAT" + TableName + "_" + EntryUser + "_" + BRAT_NAME + "_" + VERSION + ".xlsx" _
         , FileFormat:=51
     
     ActiveWindow.Close
@@ -206,7 +215,7 @@ Sub ExposureTableExportHandler(EntryDate, EntryUser, TableName, TimeStamp, share
     Application.DisplayAlerts = True
 End Sub
 
-Sub DataExportHandler(EntryDate, EntryUser, TableName, TimeStamp, sharePointURL)
+Sub DataExportHandler(EntryDate, EntryUser, TableName, TimeStamp, sharePointURL, BRAT_NAME, VERSION)
     Sheets("Export Data").Select
     Range(TableName).Select
     'START Add EntryDate and EntryBy
@@ -260,7 +269,7 @@ Sub DataExportHandler(EntryDate, EntryUser, TableName, TimeStamp, sharePointURL)
     Application.DisplayAlerts = False
     
     ActiveWorkbook.SaveAs Filename:= _
-        sharePointURL + TimeStamp + "_BRAT" + TableName + "_" + EntryUser + ".xlsx" _
+        sharePointURL + TimeStamp + "_BRAT" + TableName + "_" + EntryUser + "_" + BRAT_NAME + "_" + VERSION + ".xlsx" _
         , FileFormat:=51
     
     ActiveWindow.Close
@@ -279,7 +288,7 @@ Sub DataExportHandler(EntryDate, EntryUser, TableName, TimeStamp, sharePointURL)
     Application.DisplayAlerts = True
 End Sub
 
-Sub LossListingTableHandler(sharePointURL)
+Sub LossListingTableHandler(sharePointURL, BRAT_NAME, VERSION)
     
     Application.Calculation = xlCalculationManual
     Range("C:M").EntireColumn.Hidden = False
@@ -403,7 +412,7 @@ Sub LossListingTableHandler(sharePointURL)
         
     Application.DisplayAlerts = False
     ActiveWorkbook.SaveAs Filename:= _
-        sharePointURL + TimeStamp + "_BRATForLosses_" + CURRENT_USER + ".xlsx" _
+        sharePointURL + TimeStamp + "_BRATForLosses_" + CURRENT_USER + "_" + BRAT_NAME + "_" + VERSION + ".xlsx" _
         , FileFormat:=51
     
     ActiveWindow.Close
