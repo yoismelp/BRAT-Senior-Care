@@ -1,5 +1,6 @@
 Sub Button1_Click()
     Application.Calculation = xlCalculationManual
+    Application.ScreenUpdating = False
     Sheets("Export Data").Visible = True
     
     Dim CURRENT_USER As String
@@ -26,13 +27,12 @@ Sub Button1_Click()
     'PROD
          sharePointURL = "https://bowheadsi.sharepoint.com/sites/DataVault/Shared%20Documents/Policy%20Processing/BRAT%20-%20Losses%20Export/"
     
+    'AccountInfoTable
+    AccountInfoTableExportHandler ENTRY_DATE, CURRENT_USER, "AccountInfo", TimeStamp, sharePointURL, BRAT_NAME, VERSION
     
     'ExposureTable
     ExposureTableExportHandler ENTRY_DATE, CURRENT_USER, "ExposureTable", TimeStamp, sharePointURL, BRAT_NAME, VERSION
-    
-    'AccountInfoTable
-    AccountInfoTableExportHandler ENTRY_DATE, CURRENT_USER, "AccountInfo", TimeStamp, sharePointURL, BRAT_NAME, VERSION
-           
+              
     'TowerTable
     DataExportHandler ENTRY_DATE, CURRENT_USER, "TowerTable", TimeStamp, sharePointURL, BRAT_NAME, VERSION
     
@@ -43,11 +43,34 @@ Sub Button1_Click()
     LossListingTableHandler sharePointURL, BRAT_NAME, VERSION
     
     Sheets("Export Data").Visible = False
+    Application.ScreenUpdating = True
     Application.Calculation = xlCalculationAutomatic
 End Sub
 
 Sub AccountInfoTableExportHandler(EntryDate, EntryUser, TableName, TimeStamp, sharePointURL, BRAT_NAME, VERSION)
+    Sheets("Export Data").Select
     
+    Dim headersRowNumber As Integer
+    Range(TableName + "[[#Headers],['UploadID]]").Select
+        headersRowNumber = ActiveCell.Row
+        
+    Dim col As Variant
+
+    With Sheets("Export Data") '<--| reference relevant worksheet
+        col = Application.Match("EntryBy", .Rows(4), 0) '<--| try searching its row 1 for wanted header text
+    If Not IsError(col) Then .Columns(col).Delete '<--| if found then delete its entire column
+    End With
+
+    With Sheets("Export Data") '<--| reference relevant worksheet
+        col = Application.Match("EntryDate", .Rows(4), 0) '<--| try searching its row 1 for wanted header text
+    If Not IsError(col) Then .Columns(col).Delete '<--| if found then delete its entire column
+    End With
+
+    With Sheets("Export Data") '<--| reference relevant worksheet
+        col = Application.Match("VariableValueExport", .Rows(4), 0) '<--| try searching its row 1 for wanted header text
+    If Not IsError(col) Then .Columns(col).Delete '<--| if found then delete its entire column
+    End With
+
     Sheets("Export Data").Select
     Range(TableName).Select
     'START Add EntryDate and EntryBy
@@ -133,6 +156,28 @@ End Sub
 
 Sub ExposureTableExportHandler(EntryDate, EntryUser, TableName, TimeStamp, sharePointURL, BRAT_NAME, VERSION)
     Sheets("Export Data").Select
+    
+    Dim headersRowNumber As Integer
+    Range(TableName + "[[#Headers],['UploadID]]").Select
+        headersRowNumber = ActiveCell.Row
+        
+    Dim col As Variant
+
+    With Sheets("Export Data") '<--| reference relevant worksheet
+        col = Application.Match("EntryBy", .Rows(headersRowNumber), 0) '<--| try searching its row 1 for wanted header text
+    If Not IsError(col) Then .Columns(col).Delete '<--| if found then delete its entire column
+    End With
+
+    With Sheets("Export Data") '<--| reference relevant worksheet
+        col = Application.Match("EntryDate", .Rows(headersRowNumber), 0) '<--| try searching its row 1 for wanted header text
+    If Not IsError(col) Then .Columns(col).Delete '<--| if found then delete its entire column
+    End With
+
+    With Sheets("Export Data") '<--| reference relevant worksheet
+        col = Application.Match("StartDateExport", .Rows(headersRowNumber), 0) '<--| try searching its row 1 for wanted header text
+    If Not IsError(col) Then .Columns(col).Delete '<--| if found then delete its entire column
+    End With
+    
     Range(TableName).Select
     'START Add EntryDate and EntryBy
     Selection.End(xlToRight).Offset(-1, 1).Select
@@ -217,6 +262,23 @@ End Sub
 
 Sub DataExportHandler(EntryDate, EntryUser, TableName, TimeStamp, sharePointURL, BRAT_NAME, VERSION)
     Sheets("Export Data").Select
+    
+    Dim headersRowNumber As Integer
+    Range(TableName + "[[#Headers],['UploadID]]").Select
+        headersRowNumber = ActiveCell.Row
+        
+    Dim col As Variant
+
+    With Sheets("Export Data") '<--| reference relevant worksheet
+        col = Application.Match("EntryBy", .Rows(4), 0) '<--| try searching its row 1 for wanted header text
+    If Not IsError(col) Then .Columns(col).Delete '<--| if found then delete its entire column
+    End With
+
+    With Sheets("Export Data") '<--| reference relevant worksheet
+        col = Application.Match("EntryDate", .Rows(4), 0) '<--| try searching its row 1 for wanted header text
+    If Not IsError(col) Then .Columns(col).Delete '<--| if found then delete its entire column
+    End With
+    
     Range(TableName).Select
     'START Add EntryDate and EntryBy
     Selection.End(xlToRight).Offset(-1, 1).Select
@@ -292,8 +354,7 @@ Sub LossListingTableHandler(sharePointURL, BRAT_NAME, VERSION)
     
     Application.Calculation = xlCalculationManual
     Range("C:M").EntireColumn.Hidden = False
-    
-    
+        
     Dim CURRENT_USER As String
         CURRENT_USER = Application.UserName
     Dim TimeStamp As String
@@ -301,9 +362,11 @@ Sub LossListingTableHandler(sharePointURL, BRAT_NAME, VERSION)
     Dim filePat As String
         filePath = Application.ActiveWorkbook.FullName
     Sheets("Loss Listing").Select
+    Dim headersRowNumber As Integer
     
     'START Add row count
     Range("LossTable[[#Headers],['#]]").Select
+        headersRowNumber = ActiveCell.Row
     ActiveCell.Offset(1, 0).Select
     Selection.ListObject.ListRows.Add (1)
     ActiveCell.FormulaR1C1 = "0"
@@ -327,18 +390,44 @@ Sub LossListingTableHandler(sharePointURL, BRAT_NAME, VERSION)
     Range("LossTable[[#Headers],['#]]").Select
     ActiveCell.FormulaR1C1 = "BRATRowNumber"
     
-    'START Fromat dates
-    'Range("LossTable[[#All],[Evaluation Date]]").Select
-    'Selection.NumberFormat = "m/d/yyyy"
-    'Range("LossTable[[#All],[Report Date]]").Select
-    'Selection.NumberFormat = "m/d/yyyy"
-    'Range("LossTable[[#All],[Loss or Accident Date]]").Select
-    'Selection.NumberFormat = "m/d/yyyy"
-    'Range("LossTable[[#All],[Closed Date]]").Select
-    'Selection.NumberFormat = "m/d/yyyy"
-    'Range("LossTable[[#All],[Experience Date]]").Select
-    'Selection.NumberFormat = "m/d/yyyy"
-    'END Fromat dates
+    'START Remove Extra Columns if exists
+    Dim col As Variant
+
+    With Sheets("Loss Listing") '<--| reference relevant worksheet
+        col = Application.Match("Evaluation Date Import", .Rows(headersRowNumber), 0) '<--| try searching its row 1 for wanted header text
+    If Not IsError(col) Then .Columns(col).Delete '<--| if found then delete its entire column
+    End With
+
+    With Sheets("Loss Listing") '<--| reference relevant worksheet
+        col = Application.Match("Report Date Import", .Rows(headersRowNumber), 0) '<--| try searching its row 1 for wanted header text
+    If Not IsError(col) Then .Columns(col).Delete '<--| if found then delete its entire column
+    End With
+    
+    With Sheets("Loss Listing") '<--| reference relevant worksheet
+        col = Application.Match("Loss or Accident Date Import", .Rows(headersRowNumber), 0) '<--| try searching its row 1 for wanted header text
+    If Not IsError(col) Then .Columns(col).Delete '<--| if found then delete its entire column
+    End With
+    
+     With Sheets("Loss Listing") '<--| reference relevant worksheet
+        col = Application.Match("Closed Date Import", .Rows(headersRowNumber), 0) '<--| try searching its row 1 for wanted header text
+    If Not IsError(col) Then .Columns(col).Delete '<--| if found then delete its entire column
+    End With
+    
+    With Sheets("Loss Listing") '<--| reference relevant worksheet
+        col = Application.Match("Experience Date Import", .Rows(headersRowNumber), 0) '<--| try searching its row 1 for wanted header text
+    If Not IsError(col) Then .Columns(col).Delete '<--| if found then delete its entire column
+    End With
+    
+    With Sheets("Loss Listing") '<--| reference relevant worksheet
+        col = Application.Match("EntryBy", .Rows(headersRowNumber), 0) '<--| try searching its row 1 for wanted header text
+    If Not IsError(col) Then .Columns(col).Delete '<--| if found then delete its entire column
+    End With
+    
+    With Sheets("Loss Listing") '<--| reference relevant worksheet
+        col = Application.Match("EntryDate", .Rows(headersRowNumber), 0) '<--| try searching its row 1 for wanted header text
+    If Not IsError(col) Then .Columns(col).Delete '<--| if found then delete its entire column
+    End With
+    'END Remove Extra Columns if exists
     
     
     'START Adding new columns
