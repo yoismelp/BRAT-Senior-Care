@@ -2,12 +2,20 @@ Option Explicit
 Sub Button1_Click()
 
     Dim AutoSv As Boolean
+    
+    'hardcode UploadID and unprotect
+    Sheets("Export Data").Activate
+    Range("B5").Copy
+    Range("B5").PasteSpecial xlPasteValues
+    ActiveSheet.Unprotect Password:=""
+    Sheets("Loss Listing").Activate
+    ActiveSheet.Unprotect Password:=""
 
-    If Val(Application.VERSION) > 15 Then
-        AutoSv = ActiveWorkbook.AutoSaveOn
-        If AutoSv Then ActiveWorkbook.AutoSaveOn = False
-        AutoSv = ActiveWorkbook.AutoSaveOn
-    End If
+    'If Val(Application.VERSION) > 15 Then
+     '   AutoSv = ActiveWorkbook.AutoSaveOn
+     '   If AutoSv Then ActiveWorkbook.AutoSaveOn = False
+    '    AutoSv = ActiveWorkbook.AutoSaveOn
+    'End If
     
     Sheets("Export Data").Visible = True
     Application.ScreenUpdating = False
@@ -37,40 +45,37 @@ Sub Button1_Click()
     
     Dim sharePointURL As String
     'DEV
-        'sharePointURL = "https://bowheadsi.sharepoint.com/sites/DevDataVault/Shared%20Documents/Policy%20Processing/BRAT%20-%20Losses%20Export/"
+        sharePointURL = "https://bowheadsi.sharepoint.com/sites/DevDataVault/Shared%20Documents/Policy%20Processing/BRAT%20-%20Losses%20Export/"
     'PROD
-         sharePointURL = "https://bowheadsi.sharepoint.com/sites/DataVault/Shared%20Documents/Policy%20Processing/BRAT%20-%20Losses%20Export/"
+         'sharePointURL = "https://bowheadsi.sharepoint.com/sites/DataVault/Shared%20Documents/Policy%20Processing/BRAT%20-%20Losses%20Export/"
     
     'LossListingTable
     Application.StatusBar = "Starting LossListingTable"
-    LossListingTableHandler sharePointURL, BRAT_NAME, VERSION, "Loss Table"
+    'LossListingTableHandler sharePointURL, BRAT_NAME, VERSION, "Loss Table"
     
     'AccountInfoTable
     Application.StatusBar = "Starting Account Info"
-    AccountInfoTableExportHandler ENTRY_DATE, CURRENT_USER, "AccountInfo", TimeStamp, sharePointURL, BRAT_NAME, VERSION
-    
+    'AccountInfoTableExportHandler ENTRY_DATE, CURRENT_USER, "AccountInfo", TimeStamp, sharePointURL, BRAT_NAME, VERSION
     
     'TowerTable
     Application.StatusBar = "Starting TowerTable"
-    DataExportHandler ENTRY_DATE, CURRENT_USER, "TowerTable", TimeStamp, sharePointURL, BRAT_NAME, VERSION
+    'DataExportHandler ENTRY_DATE, CURRENT_USER, "TowerTable", TimeStamp, sharePointURL, BRAT_NAME, VERSION
     
     'ExposureTable
     Application.StatusBar = "Starting ExposureTable"
-    ExposureTableExportHandler ENTRY_DATE, CURRENT_USER, "ExposureTable", TimeStamp, sharePointURL, BRAT_NAME, VERSION
+    'ExposureTableExportHandler ENTRY_DATE, CURRENT_USER, "ExposureTable", TimeStamp, sharePointURL, BRAT_NAME, VERSION
     
     'LocationTable
     Application.StatusBar = "Starting LocationTable"
     DataExportHandler ENTRY_DATE, CURRENT_USER, "LocationTable", TimeStamp, sharePointURL, BRAT_NAME, VERSION
     
     Workbooks(wbName).Activate
-    ThisWorkbook.Worksheets("Loss Listing").Activate
-    Range("C:M").EntireColumn.Hidden = True
     Worksheets(wsName).Select
     
-    If Val(Application.VERSION) > 15 Then
-        ActiveWorkbook.AutoSaveOn = True
-        AutoSv = ActiveWorkbook.AutoSaveOn
-    End If
+    'If Val(Application.VERSION) > 15 Then
+    '    ActiveWorkbook.AutoSaveOn = True
+    '    AutoSv = ActiveWorkbook.AutoSaveOn
+    'End If
     
     Application.EnableEvents = False
     ThisWorkbook.Worksheets("Export Data").Visible = False
@@ -80,6 +85,13 @@ Sub Button1_Click()
     Application.DisplayAlerts = True
     
     Application.StatusBar = "COMPLETED - Data Export for SQL"
+    
+CatchError:
+Sheets("Export Data").Activate
+Range("B5").Formula = "=YEAR(UploadTime)&TEXT(MONTH(UploadTime),""00"")&TEXT(DAY(UploadTime),""00"")&TEXT(HOUR(UploadTime),""00"")&TEXT(MINUTE(UploadTime),""00"")&TEXT(SECOND(UploadTime),""00"")"
+Sheets("Loss Listing").Protect Password:="Bowhead"
+Application.ScreenUpdating = True
+
 End Sub
 
 Function AccountInfoTableExportHandler(EntryDate As String, EntryUser As String, TableName As String, TimeStamp As String, sharePointURL As String, BRAT_NAME As String, VERSION As String)
@@ -254,9 +266,12 @@ Function ExposureTableExportHandler(EntryDate As String, EntryUser As String, Ta
     
     ActiveCell.Offset(0, 1).Activate
     ActiveCell.FormulaR1C1 = "=TEXT([@[Start Date]], ""yyyyMMdd"")"
-    
     'END Add EntryDate and EntryBy
     
+    'Filter rows with data based on columns ExposureGroupName
+    ActiveSheet.ListObjects(TableName).Range.AutoFilter Field:=3, _
+        Criteria1:="<>0"
+
     'START Save file
     Application.StatusBar = TableName + " Saving table and exporting to SP"
     Range(TableName & "[#All]").Activate
@@ -277,6 +292,9 @@ Function ExposureTableExportHandler(EntryDate As String, EntryUser As String, Ta
     
     ActiveWindow.Close
     
+    'Remove filter on ExposureGroupName
+    ActiveSheet.ListObjects(TableName).Range.AutoFilter Field:=3
+
     'Remove EntryBy
     Application.StatusBar = TableName + " Removing added columns"
     Range(TableName & "[[#Headers],['EntryBy]]").Activate
@@ -287,7 +305,6 @@ Function ExposureTableExportHandler(EntryDate As String, EntryUser As String, Ta
     'Remove Start Date Export
     Range(TableName & "[[#Headers],['StartDateExport]]").Activate
     ActiveCell.EntireColumn.Delete Shift:=xlToLeft
-    
     'END Save file
 End Function
 
@@ -347,9 +364,14 @@ Function DataExportHandler(EntryDate As String, EntryUser As String, TableName A
     Range(Selection, Selection.End(xlDown)).Select
     ActiveSheet.Paste
     Selection.NumberFormat = "YYYYMMDD hh:mm:ss AM/PM"
-    
     'END Add EntryDate and EntryBy
     
+    'FILTER LocationTable on Location Name <> 0
+    If TableName = "LocationTable" Then
+        ActiveSheet.ListObjects(TableName).Range.AutoFilter Field:=3, _
+            Criteria1:="<>0"
+    End If
+
     'START Save file
     Application.StatusBar = TableName + " Exporting table and saving to SP"
     Range(TableName & "[#All]").Activate
@@ -367,9 +389,13 @@ Function DataExportHandler(EntryDate As String, EntryUser As String, TableName A
     ActiveWorkbook.SaveAs Filename:= _
         sharePointURL + TimeStamp + "_BRAT" + TableName + "_" + EntryUser + "_" + BRAT_NAME + "_" + VERSION + ".xlsx" _
         , FileFormat:=51
-    
     ActiveWindow.Close
     
+    'Remove FILTER LocationTable on Location Name <> 0
+    If TableName = "LocationTable" Then
+        ActiveSheet.ListObjects(TableName).Range.AutoFilter Field:=3
+    End If
+
     'Remove EntryBy
     Application.StatusBar = TableName + " Removing added columns"
     Range(TableName & "[[#Headers],['EntryBy]]").Activate
@@ -377,7 +403,6 @@ Function DataExportHandler(EntryDate As String, EntryUser As String, TableName A
     'Remove EntryTime
     Range(TableName & "[[#Headers],['EntryDate]]").Activate
     ActiveCell.EntireColumn.Delete Shift:=xlToLeft
-    
     'END Save file
 End Function
 
@@ -386,7 +411,6 @@ Function LossListingTableHandler(sharePointURL As String, BRAT_NAME As String, V
     ActiveSheet.ListObjects("LossTable").Range.AutoFilter Field:=14
     Application.Calculation = xlCalculationManual
     Range("C:M").EntireColumn.Hidden = False
-    
     
     Dim CURRENT_USER As String
         CURRENT_USER = Application.UserName
@@ -399,23 +423,15 @@ Function LossListingTableHandler(sharePointURL As String, BRAT_NAME As String, V
     Set myColumn = Sheets("Loss Listing").ListObjects("LossTable").ListColumns("Coverage")
     
     
-    'START Add row count
-    'Application.StatusBar = TableName + " Adding row count"
+    'START row count
+    Application.StatusBar = "Counting rows in Loss Listing"
     Range("LossTable[[#Headers],['#]]").Activate
     Dim headersRowNumber As Integer
     headersRowNumber = ActiveCell.Row
-    'ActiveCell.Offset(1, 0).Activate
-    'Selection.ListObject.ListRows.Add (1)
-    'ActiveCell.FormulaR1C1 = "0"
-    'Range("LossTable[[#Headers],['Coverage]]").Activate
-    'ActiveCell.Offset(1, 0).Activate
-    'ActiveCell.FormulaR1C1 = "PL"
     Range("LossTable[[#Headers],['UploadID]]").Offset(1, 0).Activate
-    'ActiveCell.Offset(1, 0).Activate
     'To get number of rows populated using Coverage column as reference
     Dim UsedRows As Long
     UsedRows = Application.CountA(myColumn.DataBodyRange)
-    'ActiveCell.FormulaR1C1 = UsedRows - 1
     'END row count
     
     'START Filter out blank rows based on Coverage
@@ -424,7 +440,6 @@ Function LossListingTableHandler(sharePointURL As String, BRAT_NAME As String, V
         :="<>"
     'END Filter out blank rows based on Coverage
     Range("LossTable[[#Headers],['#]]").FormulaR1C1 = "BRATRowNumber"
-    'ActiveCell.FormulaR1C1 = "BRATRowNumber"
     
     'START Remove Extra Columns if exists
     Application.StatusBar = TableName + " Remove added columns if exists"
@@ -469,7 +484,8 @@ Function LossListingTableHandler(sharePointURL As String, BRAT_NAME As String, V
     'START Adding new columns
     Application.StatusBar = TableName + " Adding columns for export"
     'Headers
-    Selection.End(xlToRight).Offset(-1, 1).Select
+    Range("LossTable[[#Headers],['UploadID]]").Select
+    Selection.End(xlToRight).Offset(0, 1).Select
     Application.CutCopyMode = False
         ActiveCell.FormulaR1C1 = "Evaluation Date Import"
     
@@ -547,44 +563,20 @@ Function LossListingTableHandler(sharePointURL As String, BRAT_NAME As String, V
     'Remove EntryBy
     Application.StatusBar = TableName + " Removing added columns"
     Range("LossTable[[#Headers],['EntryDate]]").EntireColumn.Delete Shift:=xlToLeft
-    'ActiveCell.EntireColumn.Delete Shift:=xlToLeft
     'Remove EntryTime
     Range("LossTable[[#Headers],['EntryBy]]").EntireColumn.Delete Shift:=xlToLeft
-    'ActiveCell.EntireColumn.Delete Shift:=xlToLeft
     'Remove Evaluation Date Import
     Range("LossTable[[#Headers],['Evaluation Date Import]]").EntireColumn.Delete Shift:=xlToLeft
-    'ActiveCell.EntireColumn.Delete Shift:=xlToLeft
     'Remove Report Date Import
     Range("LossTable[[#Headers],['Report Date Import]]").EntireColumn.Delete Shift:=xlToLeft
-    'ActiveCell.EntireColumn.Delete Shift:=xlToLeft
     'Remove Loss or Accident Date Import
     Range("LossTable[[#Headers],['Loss or Accident Date Import]]").EntireColumn.Delete Shift:=xlToLeft
-    'ActiveCell.EntireColumn.Delete Shift:=xlToLeft
     'Remove Closed Date Import
     Range("LossTable[[#Headers],['Closed Date Import]]").EntireColumn.Delete Shift:=xlToLeft
-    'ActiveCell.EntireColumn.Delete Shift:=xlToLeft
     'Remove Experience Date Import
     Range("LossTable[[#Headers],['Experience Date Import]]").EntireColumn.Delete Shift:=xlToLeft
-    'ActiveCell.EntireColumn.Delete Shift:=xlToLeft
     
     Range("LossTable[[#Headers],['BRATRowNumber]]").FormulaR1C1 = "#"
-    'ActiveCell.FormulaR1C1 = "#"
-    
-    'START Fromat dates back
-    'Range("LossTable[[#All],[Evaluation Date]]").Select
-    'Selection.NumberFormat = "m/d/yyyy"
-    'Range("LossTable[[#All],[Report Date]]").Select
-    'Selection.NumberFormat = "m/d/yyyy"
-    'Range("LossTable[[#All],[Loss or Accident Date]]").Select
-    'Selection.NumberFormat = "m/d/yyyy"
-    'Range("LossTable[[#All],[Closed Date]]").Select
-    'Selection.NumberFormat = "m/d/yyyy"
-    'Range("LossTable[[#All],[Experience Date]]").Select
-    'Selection.NumberFormat = "m/d/yyyy"
-    'END Fromat dates back
-    
-    'DELETE ROW COUNT
     ActiveSheet.ListObjects("LossTable").Range.AutoFilter Field:=14
-    'ActiveCell.Offset(1, 0).Activate
-    'Selection.ListObject.ListRows(1).Delete
+    Range("C:M").EntireColumn.Hidden = True
 End Function
