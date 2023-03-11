@@ -1,0 +1,55 @@
+function main(workbook: ExcelScript.Workbook, jsonBody: string): string {
+    // Get the table, we can pass a json instead of jsonBody if testing is needed
+    let parsedJson: Record<string, unknown> = JSON.parse(jsonBody);
+    let table = workbook.getTable("Table1");
+
+    // Get the headers
+    let headers = table.getHeaderRowRange().getValues()[0];
+
+    // Get the column indexes
+    let nameIndex = headers.indexOf("Name_in_BRAT");
+    let cardIndex = headers.indexOf("ID_in_CARD");
+
+    // Get the values
+    let values = table.getRangeBetweenHeaderAndTotal().getValues();
+
+    // Initialize arrays
+    let names: string[] = [];
+    let ids: string[] = [];
+
+    // Loop through the values and populate the arrays
+    let myDict: { [key: string]: string } = {};
+    for (let i = 0; i < values.length; i++) {
+        myDict[values[i][nameIndex].toString()] = String(values[i][cardIndex]);
+    }
+    //console.log(myDict);
+
+    // Loop through the names array and remove any items that are not used as keys in the parsed JSON
+    for (let key in myDict) {
+        if (parsedJson.hasOwnProperty(key)) {
+            parsedJson[myDict[key]] = parsedJson[key];
+            delete parsedJson[key];
+        } else {
+            delete parsedJson[key];
+        }
+    }
+    //console.log(myDict);
+    //console.log(parsedJson);
+
+    let found = false;
+    for (let key in parsedJson) {
+        for (let k in myDict) {
+            if (key === myDict[k]) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            //console.log("deleting " + key);
+            delete parsedJson[key];
+        }
+    }
+
+    //console.log(JSON.stringify(parsedJson));
+    return JSON.stringify(parsedJson);
+}
